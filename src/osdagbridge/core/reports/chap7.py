@@ -1,4 +1,9 @@
-def ch7_quantities(input_dict):
+from .charts import chart_figure
+from .styles import styled_chapter
+
+
+@styled_chapter
+def ch7_quantities(input_dict, chart_paths=None):
     return r"""
 \chapter{Material Take-off \& Quantity Summary}
 \label{ch:material-takeoff}
@@ -19,6 +24,8 @@ def ch7_quantities(input_dict):
 \hline
 2(c) & Cross Bracing - Diagonal Chord & """ + str(input_dict.get("bracing_diag_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_qty", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_wt_total", "N.A.")) + r""" \\
 \hline
+2(d) & End Diaphragms & N.A. & N.A. & N.A. & N.A. & """ + str(input_dict.get("end_diaphragm_wt_total", "N.A.")) + r""" \\
+\hline
 3 & Concrete (M40) for Deck Slab & """ + str(input_dict.get("concrete_deck_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_qty", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_wt_total", "N.A.")) + r""" \\
 \hline
 4 & Reinforcement Steel (Fe 500) & """ + str(input_dict.get("rebar_deck_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_qty", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_wt_total", "N.A.")) + r""" \\
@@ -28,6 +35,8 @@ def ch7_quantities(input_dict):
 6 & Crash Barrier & """ + str(input_dict.get("crash_barrier_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_qty", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_wt_total", "N.A.")) + r""" \\
 \hline
 \end{longtable}
-"""
+\endgroup
+\noindent\textit{Quantities reproduce the existing bill of quantities. End diaphragm mass is N/A unless explicitly supplied; it is not inferred from cross bracing. Reinforcement tonnage in the upstream bill of quantities is an estimate of 120 kg per cubic metre of deck concrete, not a reinforcement schedule.}
+""" + chart_figure(chart_paths, "steel_quantities", "Structural steel quantities in metric tonnes. N/A denotes unavailable quantities.") + chart_figure(chart_paths, "deck_quantities", "Deck concrete volume and estimated reinforcement mass, displayed on separate axes because their units differ.")
 
 

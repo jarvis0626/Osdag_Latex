@@ -1,3 +1,5 @@
+from .styles import styled_chapter
+
 from typing import List
 
 from osdagbridge.core.utils.common import (
@@ -5,6 +7,7 @@ from osdagbridge.core.utils.common import (
 )
 
 
+@styled_chapter
 def ch8_design_log(log_entries: List[str], input_dict: dict) -> str:
     """Render Chapter 8 using real log_entries, matching Osdag color convention."""
 
@@ -53,10 +56,9 @@ design modules, and notes the limitations of the current software version.
 The following Indian Road Congress (IRC) codes and Indian Standards (IS) 
 form the basis of all design calculations in this software.
 
-\vspace{0.5cm}
+\ReportTableGap
 
-\begingroup
-\setlength{\tabcolsep}{3.5pt}
+
 \begin{table}[H]
 \caption{\textbf{IRC Codes}}
 \begin{tabular}{|c|c|p{13cm}|}
@@ -78,8 +80,7 @@ IRC SP 114 & 2018 & Seismic Design of Road Bridges \\
 \end{tabular}
 \end{table}
 
-\begingroup
-\setlength{\tabcolsep}{3.5pt}
+
 \begin{table}[H]
 \caption{\textbf{IS Codes}}
 \begin{tabular}{|c|c|p{13cm}|}
@@ -101,7 +102,7 @@ IS 2062 & 2011 & Structural steel - yield and ultimate strength by grade \\
 
 \clearpage
 \section{Analysis and Design Assumptions of This Version}
-\label{sec:assumptions}
+\label{sec:design-assumptions}
 
 \textbf{Structural Analysis}
 
@@ -150,7 +151,7 @@ IS 2062 & 2011 & Structural steel - yield and ultimate strength by grade \\
 \item Dead load densities per IRC 6:2017 Cl.203: structural steel $78.5 \ \text{kN/m}^3$, concrete $25.0 \ \text{kN/m}^3$, bituminous wearing course $24.0 \ \text{kN/m}^3$.
 \item Multi-lane live load reduction factors per IRC 6:2017 Cl.204.4 Table 6A: 1st lane = 1.0, 2nd lane = 0.8, 3rd lane onwards = 0.4.
 \item Impact factor (dynamic load allowance) computed from span per IRC 6:2017 Cl.208.2/208.3.
-\item Wind load applied as transverse, longitudinal, and vertical components per IRC 6:2017 Cl.209.3.3--209.3.5.
+\item Wind load applied as transverse, longitudinal, and vertical components per IRC 6:2017 Cl.209.3.3--\allowbreak 209.3.5.
 \end{itemize}
 
 \textbf{Serviceability Limits}

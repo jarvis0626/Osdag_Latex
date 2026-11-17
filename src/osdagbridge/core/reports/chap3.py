@@ -5,7 +5,9 @@
 
 from osdagbridge.core.utils.common import (
     KEY_CB_LOAD,
+    KEY_FOOTPATH,
     KEY_LL_CUSTOM_VEHICLES,
+    KEY_LL_ECCENTRICITY,
     KEY_LL_FOOTPATH_PRESSURE_MODE,
     KEY_LL_FOOTPATH_PRESSURE_VALUE,
     KEY_LL_IRC_70R_BOGIE,
@@ -20,31 +22,21 @@ from osdagbridge.core.utils.common import (
     KEY_MATERIAL_GIRDER_DENSITY,
     KEY_PL_SELF_WEIGHT_FACTOR,
     KEY_RL_LOAD_VALUE,
-    KEY_SL_DAMPING,
-    KEY_SL_DEAD_LOAD_MODE,
-    KEY_SL_DEAD_LOAD_VALUE,
     KEY_SL_HORIZONTAL_COEFF,
     KEY_SL_IMPORTANCE_FACTOR,
-    KEY_SL_LIVE_LOAD_MODE,
-    KEY_SL_LIVE_LOAD_VALUE,
-    KEY_SL_SEISMIC_ZONE,
     KEY_SL_SOIL_TYPE,
     KEY_SL_SPECTRAL_COEFF,
-    KEY_SL_TIME_PERIOD,
     KEY_SL_VERTICAL_COEFF,
     KEY_SL_ZONE_FACTOR,
     KEY_SPAN,
     KEY_TL_BRIDGE_TEMP_MAX,
     KEY_TL_BRIDGE_TEMP_MIN,
-    KEY_TL_HIGHEST_MAX_TEMP,
-    KEY_TL_LOWEST_MIN_TEMP,
     KEY_TL_TEMP_FALL,
     KEY_TL_TEMP_RISE,
     KEY_WC_LD_LANE_TABLE_COUNT,
     KEY_WC_MATERIAL,
     KEY_WC_THICKNESS,
     KEY_WL_AVG_EXPOSED_HEIGHT,
-    KEY_WL_BASIC_WIND_SPEED,
     KEY_WL_HOURLY_MEAN_WIND,
     KEY_WL_HOURLY_WIND_PRESSURE,
     KEY_WL_LONGITUDINAL_WIND_FORCE,
@@ -54,32 +46,56 @@ from osdagbridge.core.utils.common import (
 )
 
 from osdagbridge.core.reports.report_utils import _tex, _render_value
+from .styles import styled_chapter
 
+
+def _selected(value):
+    """Match the UI's explicit checkbox values, including saved string values."""
+    return value is True or str(value).strip().lower() in ("true", "yes", "1", "checked")
+
+
+def _load_table(caption, rows):
+    """Render plain-text values separately from trusted LaTeX units."""
+    body = "\n".join(
+        _tex(parameter) + " & " + _tex("N/A" if value in (None, "") else value)
+        + " & " + unit + r" \\[6pt]" + "\n" + r"\hline"
+        for parameter, value, unit in rows
+    )
+    return (
+        r"\begin{longtable}{|L{6.0cm}|L{7.0cm}|L{2.5cm}|}" + "\n"
+        + r"\caption{\textbf{" + caption + r"}}" + "\n"
+        + r"\hline" + "\n"
+        + r"\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\" + "\n"
+        + r"\hline" + "\n" + body + "\n" + r"\end{longtable}"
+    )
+
+
+@styled_chapter
 def ch3_loads(input_dict):
     # Live load vehicle names mapping
     vehicles = []
-    if input_dict.get(KEY_LL_IRC_CLASS_A):
+    if _selected(input_dict.get(KEY_LL_IRC_CLASS_A)):
         vehicles.append("Class A")
-    if input_dict.get(KEY_LL_IRC_70R_WHEELED):
+    if _selected(input_dict.get(KEY_LL_IRC_70R_WHEELED)):
         vehicles.append("Class 70R (Wheeled)")
-    if input_dict.get(KEY_LL_IRC_70R_TRACKED):
+    if _selected(input_dict.get(KEY_LL_IRC_70R_TRACKED)):
         vehicles.append("Class 70R (Tracked)")
-    if input_dict.get(KEY_LL_IRC_AA_WHEELED):
+    if _selected(input_dict.get(KEY_LL_IRC_AA_WHEELED)):
         vehicles.append("Class AA (Wheeled)")
-    if input_dict.get(KEY_LL_IRC_AA_TRACKED):
+    if _selected(input_dict.get(KEY_LL_IRC_AA_TRACKED)):
         vehicles.append("Class AA (Tracked)")
-    if input_dict.get(KEY_LL_IRC_CLASS_SV):
+    if _selected(input_dict.get(KEY_LL_IRC_CLASS_SV)):
         vehicles.append("Class SV")
-    if input_dict.get(KEY_LL_IRC_70R_BOGIE):
+    if _selected(input_dict.get(KEY_LL_IRC_70R_BOGIE)):
         vehicles.append("Class 70R (Bogie)")
-    if input_dict.get(KEY_LL_IRC_CLASS_FATIGUE):
+    if _selected(input_dict.get(KEY_LL_IRC_CLASS_FATIGUE)):
         vehicles.append("Class Fatigue")
     
     custom = input_dict.get(KEY_LL_CUSTOM_VEHICLES)
     if custom and isinstance(custom, list):
         for c in custom:
             if isinstance(c, dict) and c.get('name'):
-                vehicles.append(c['name'])
+                vehicles.append(str(c['name']))
             elif isinstance(c, str):
                 vehicles.append(c)
                 
@@ -92,17 +108,17 @@ def ch3_loads(input_dict):
         try:
             span_m = float(span)
             factors = []
-            if input_dict.get(KEY_LL_IRC_CLASS_A):
+            if _selected(input_dict.get(KEY_LL_IRC_CLASS_A)):
                 im_a = IRC6_2017.cl_208_2_impact_factor(span_m)
                 factors.append(f"Class A: {1.0 + im_a:.3f}")
             is_wheeled_heavy = (
-                input_dict.get(KEY_LL_IRC_70R_WHEELED) or 
-                input_dict.get(KEY_LL_IRC_AA_WHEELED) or 
-                input_dict.get(KEY_LL_IRC_70R_BOGIE)
+                _selected(input_dict.get(KEY_LL_IRC_70R_WHEELED)) or
+                _selected(input_dict.get(KEY_LL_IRC_AA_WHEELED)) or
+                _selected(input_dict.get(KEY_LL_IRC_70R_BOGIE))
             )
             is_tracked_heavy = (
-                input_dict.get(KEY_LL_IRC_70R_TRACKED) or 
-                input_dict.get(KEY_LL_IRC_AA_TRACKED)
+                _selected(input_dict.get(KEY_LL_IRC_70R_TRACKED)) or
+                _selected(input_dict.get(KEY_LL_IRC_AA_TRACKED))
             )
             if is_wheeled_heavy or is_tracked_heavy:
                 im_aa = IRC6_2017.cl_208_3_impact_factor(span_m)
@@ -118,105 +134,45 @@ def ch3_loads(input_dict):
         impact_factor_str = "N/A"
 
     lanes = input_dict.get(KEY_WC_LD_LANE_TABLE_COUNT)
-    braking_force_str = ""
+    braking_force_str = "N/A"
     if lanes not in (None, ""):
         try:
             lanes_int = int(lanes)
             braking_force_t = IRC6_2017.cl_211_2_braking_force(lanes_int)
             braking_force_kN = braking_force_t * 9.81
-            braking_force_str = f"{braking_force_kN:.2f} kN ({braking_force_t:.2f} tonnes)"
+            braking_force_str = f"{braking_force_kN:.2f}"
         except Exception:
             braking_force_str = "N/A"
     else:
         braking_force_str = "N/A"
 
-    fp_mode  = input_dict.get(KEY_LL_FOOTPATH_PRESSURE_MODE, "")
+    fp_mode = input_dict.get(KEY_LL_FOOTPATH_PRESSURE_MODE, "")
     fp_value = input_dict.get(KEY_LL_FOOTPATH_PRESSURE_VALUE, "")
-    if str(fp_mode).strip().lower() in ("as per irc 6", "as per irc6", "automatic"):
+    footway_absent = str(input_dict.get(KEY_FOOTPATH, "")).strip().lower() == "none"
+    if footway_absent:
+        fp_str = "Not applicable"
+    elif str(fp_mode).strip().lower() in ("as per irc 6", "as per irc6", "automatic"):
         try:
-            fp_str = f"{IRC6_2017.cl_206_1_footway_load():.3f} kN/m² (IRC 6 Cl. 206.1)"
+            fp_str = f"{IRC6_2017.cl_206_1_footway_load():.3f}"
         except Exception:
             fp_str = "N/A"
     elif fp_value not in (None, ""):
-        fp_str = f"{fp_value} kN/m²"
+        fp_str = str(fp_value)
     else:
         fp_str = "N/A"
 
-    # Vz / Pz — prefer stored computed values; fall back to IRC6 Table 12
-    vz_val = input_dict.get(KEY_WL_HOURLY_MEAN_WIND)
-    pz_val = input_dict.get(KEY_WL_HOURLY_WIND_PRESSURE)
-    if not vz_val or not pz_val:
-        try:
-            _vb  = input_dict.get(KEY_WL_BASIC_WIND_SPEED) or input_dict.get('wind_speed')
-            _h   = input_dict.get(KEY_WL_AVG_EXPOSED_HEIGHT)
-            _ter = {
-                "Plain Terrain": "plain",
-                "Terrain with Obstructions": "obstructed",
-            }.get(str(input_dict.get(KEY_WL_TERRAIN_TYPE, "")).strip(), "plain")
-            _res = IRC6_2017.table_12(float(_h), _ter, float(_vb))
-            if not vz_val:
-                vz_val = _res.get("Vz")
-            if not pz_val:
-                pz_val = _res.get("Pz")
-        except Exception:
-            pass
-    vz_str = f"{float(vz_val):.2f} m/s" if vz_val not in (None, "") else "N/A"
-    pz_str = f"{float(pz_val):.2f} N/m²" if pz_val not in (None, "") else "N/A"
-
-    # Table 3.5 — Seismic: prefer stored computed values; fall back to IRC6 cl_218_5_1
-    sl_zone_factor = input_dict.get(KEY_SL_ZONE_FACTOR)
-    sl_spectral    = input_dict.get(KEY_SL_SPECTRAL_COEFF)
-    sl_ah          = input_dict.get(KEY_SL_HORIZONTAL_COEFF)
-    sl_av          = input_dict.get(KEY_SL_VERTICAL_COEFF)
-    if not sl_ah or not sl_zone_factor:
-        try:
-            _zone = input_dict.get(KEY_SL_SEISMIC_ZONE) or input_dict.get('seismic_zone')
-            _zmap = {"1": "I", "2": "II", "3": "III", "4": "IV", "5": "V"}
-            _z    = str(_zone).strip().upper()
-            if _z.isdigit():
-                _z = _zmap.get(_z)
-            _smap = {"Type I – Rocky or Hard": 1, "Type II – Medium Soil": 2, "Type III – Soft Soil": 3}
-            _st   = _smap.get(str(input_dict.get(KEY_SL_SOIL_TYPE, "")), 1)
-            _tp   = input_dict.get(KEY_SL_TIME_PERIOD)
-            _damp = input_dict.get(KEY_SL_DAMPING) or "5"
-            _dl_v = input_dict.get(KEY_SL_DEAD_LOAD_VALUE)
-            _ll_v = input_dict.get(KEY_SL_LIVE_LOAD_VALUE)
-            _dead = float(_dl_v) if str(input_dict.get(KEY_SL_DEAD_LOAD_MODE, "")) == "Custom" and _dl_v else 0.0
-            _live = float(_ll_v) if str(input_dict.get(KEY_SL_LIVE_LOAD_MODE, "")) == "Custom" and _ll_v else 0.0
-            _res  = IRC6_2017.cl_218_5_1(zone=f"Zone {_z}", soil_type=_st, dead_load_kN=_dead,
-                        live_load_kN=_live, period_T=float(_tp) if _tp else None,
-                        damping_percent=float(_damp))
-            if not sl_zone_factor:
-                sl_zone_factor = _res.get("Z")
-            if not sl_spectral:
-                sl_spectral    = _res.get("Sa_g_adjusted")
-            if not sl_ah:
-                sl_ah          = _res.get("Ah")
-            if not sl_av:
-                sl_av          = round(_res.get("Ah", 0) * 2 / 3, 4)
-        except Exception:
-            pass
-
-    def _sl(v, unit=""):
-        return f"{float(v):.4f}{unit}" if v not in (None, "") else "N/A"
-
-    # Table 3.6 — Temperature: compute effective bridge temp range from shade temps
-    tl_temp_min = tl_temp_max = tl_rise = tl_fall = "N/A"
-    try:
-        _tmax = input_dict.get(KEY_TL_HIGHEST_MAX_TEMP) or input_dict.get('shade_temp_max')
-        _tmin = input_dict.get(KEY_TL_LOWEST_MIN_TEMP)  or input_dict.get('shade_temp_min')
-        if _tmax and _tmin:
-            _res    = IRC6_2017.cl_215_2_effective_bridge_temperature(
-                          float(_tmax), float(_tmin), 'metallic', False)
-            _bt_min = _res.get('T_min', 0)
-            _bt_max = _res.get('T_max', 0)
-            _mean   = (_bt_max + _bt_min) / 2.0
-            tl_temp_min = f"{_bt_min:.2f}"
-            tl_temp_max = f"{_bt_max:.2f}"
-            tl_rise     = f"{_bt_max - _mean:.2f}"
-            tl_fall     = f"{_mean - _bt_min:.2f}"
-    except Exception:
-        pass
+    vehicle_table = _load_table("Vehicular Live Loads (LL)", [
+        ("Vehicles Considered", vehicles_str, "--"),
+        ("Impact Multiplier, 1 + IM (IRC 6)", impact_factor_str, "--"),
+        ("Braking Load (IRC 6)", braking_force_str, "kN"),
+        ("Braking Load Eccentricity above Deck", input_dict.get(KEY_LL_ECCENTRICITY, "N/A"), "m"),
+        ("Centrifugal Load", "Not available from backend", "kN"),
+    ])
+    footway_table = _load_table("Footway Live Load", [
+        ("Footway Arrangement", input_dict.get(KEY_FOOTPATH, "N/A"), "--"),
+        ("Pressure Specification", fp_mode or "N/A", "--"),
+        ("Footway Pressure (IRC 6 Cl. 206.1 or user-defined)", fp_str, r"kN/m\textsuperscript{2}"),
+    ])
 
     # --- Table 3.7: Load Combinations (dynamically generated from IRC 6) ---
     _LOAD_LABEL_MAP = {
@@ -300,20 +256,14 @@ This section summarizes all loads applied to the bridge and the load combination
 \end{longtable}
 
 \vspace{1em}
-\begin{longtable}{|L{5.5cm}|p{10.0cm}|}
-\caption{\textbf{Live Loads (LL)}}
-\hline
-\textbf{parameter} & \textbf{value} \\
-\hline
-\textnormal{Vehicles Considered} & """ + _tex(vehicles_str) + r""" \\[6pt]
-\hline
-\textnormal{Impact Factor (IRC 6)} & """ + _tex(impact_factor_str) + r""" \\[6pt]
-\hline
-\textnormal{Braking Load (IRC 6)} & """ + _tex(braking_force_str) + r""" \\[6pt]
-\hline
-\textnormal{Footpath Live Load (if applicable)} & """ + (_render_value(input_dict, KEY_LL_FOOTPATH_PRESSURE_VALUE, ' kN/m\\textsuperscript{2}')) + r""" \\[6pt]
-\hline
-\end{longtable}
+""" + vehicle_table + r"""
+
+\noindent\textit{N/A denotes a value unavailable from the existing backend.
+Impact multipliers use the existing IRC 6 helpers; unavailable braking or
+centrifugal forces are not assumed to be zero.}
+
+\vspace{1em}
+""" + footway_table + r"""
 
 \vspace{1em}
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}

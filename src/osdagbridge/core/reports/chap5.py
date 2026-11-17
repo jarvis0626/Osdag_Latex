@@ -142,10 +142,67 @@ from osdagbridge.core.utils.common import (
 )
 
 from osdagbridge.core.reports.report_utils import _tex, _render_value, get_girder_entries
+from .charts import chart_figure, demand_capacity_ratio, nonnegative_number, transverse_checks
+from .styles import styled_chapter
 
 if TYPE_CHECKING:
     pass
-def ch5_design_checks(checks_data, bridge) -> str:
+
+
+def _girder_rows(rows, columns):
+    """Keep incomplete snapshots renderable without inventing a girder."""
+    return "\n".join(rows) if rows else (
+        r"\multicolumn{" + str(columns)
+        + r"}{|c|}{N/A --- no girder result entries supplied} \\ \hline"
+    )
+
+
+def _end_diaphragm_tables(outputs):
+    """Render actual support diaphragm results, independently of cross bracing."""
+    checks = transverse_checks(outputs, diaphragm=True)
+    if not checks:
+        return (
+            r"\multicolumn{6}{|c|}{N/A --- no end diaphragm design results supplied} \\ \hline",
+            r"\multicolumn{6}{|c|}{N/A --- no end diaphragm design results supplied} \\ \hline",
+            r"\multicolumn{8}{|c|}{N/A --- no end diaphragm design results supplied} \\ \hline",
+        )
+    properties, slenderness, capacities = [], [], []
+    seen = set()
+    for check in checks:
+        label = _tex(check.member + " (" + check.force_type + ")")
+        pair_id = check.pair.replace("-", "")
+        prop_name = "end_diaphragm" if check.member == "diagonal" else "bottom_chord"
+        prefix = f"transverse_member_design.ed.section_properties.{prop_name}.{pair_id}"
+        if check.member == "chord" and outputs.get(prefix + ".A") is None:
+            prefix = f"transverse_member_design.ed.section_properties.top_chord.{pair_id}"
+        area = nonnegative_number(outputs.get(prefix + ".A"))
+        radius = nonnegative_number(outputs.get(prefix + ".rv"))
+        if (check.pair, check.member) not in seen:
+            properties.append(" & ".join((
+                _tex(check.pair), _tex(check.member), _tex(check.connection), _tex(check.section),
+                f"{area * 100:.1f}" if area is not None else "N/A",
+                f"{radius * 10:.1f}" if radius is not None else "N/A",
+            )) + r" \\[6pt] \hline")
+            seen.add((check.pair, check.member))
+        limit = 250 if check.force_type == "compression" else 400
+        slender_status = ("PASS" if check.slenderness <= limit else "FAIL") if check.slenderness is not None else "N/A"
+        slenderness.append(" & ".join((
+            _tex(check.pair), _tex(check.member), _tex(check.force_type), "N/A",
+            f"{check.slenderness:.1f}" if check.slenderness is not None else "N/A",
+            f"{limit} / {slender_status}",
+        )) + r" \\[6pt] \hline")
+        status = ("PASS" if check.ratio <= 1 else r"\textcolor{red}{FAIL}") if check.ratio is not None else "N/A"
+        capacities.append(" & ".join((
+            _tex(check.pair), label, _tex(check.section), _tex(check.governing_lc),
+            f"{check.demand:.3f}" if check.demand is not None else "N/A",
+            f"{check.capacity:.3f}" if check.capacity is not None else "N/A",
+            f"{check.ratio:.3f}" if check.ratio is not None else "N/A", status,
+        )) + r" \\[6pt] \hline")
+    return "\n".join(properties), "\n".join(slenderness), "\n".join(capacities)
+
+
+@styled_chapter
+def ch5_design_checks(checks_data, bridge, chart_paths=None) -> str:
     """Chapter 5 — Design Checks.
 
     Parameters
@@ -156,15 +213,13 @@ def ch5_design_checks(checks_data, bridge) -> str:
         Provides input_dict, output_dict, and helper methods.
     """
     girder_entries = get_girder_entries(bridge.input_dict)
-    if not girder_entries:
-        n = int(bridge.input_dict.get(KEY_TS_NO_OF_GIRDERS, 1))
-        girder_entries = [(f"Girder {i}", f"M1") for i in range(1, n + 1)]
     n_girders = len(girder_entries)
 
     # Deck slab design report values (Tables 5.17(a)-(g)), keyed to
     # common.KEY_DD_*. Populated by deckdesign.design_deck_slab(); empty
     # dict when deck design has not been run. Look up with deck_rpt.get(KEY_...).
     deck_rpt = bridge.output_dict.get("deck_report_values", {}) or {}
+    ed_forces_content, ed_slenderness_content, ed_capacity_content = _end_diaphragm_tables(bridge.output_dict)
 
     # Generate Table 5.1 rows (per-girder section properties)
     t51_rows = []
@@ -197,7 +252,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & \textnormal{Depth to Plastic Neutral Axis (mm)} & """ + _render_value(bridge.output_dict, KEY_SD_PNA_DEPTH) + r""" \\[6pt]
 \hline"""
         )
-    t51_content = "\n".join(t51_rows)
+    t51_content = _girder_rows(t51_rows, 3)
 
     # Generate Table 5.2 rows
     t52_rows = []
@@ -210,7 +265,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & Overall Section & --- & --- & """ + _render_value(bridge.output_dict, KEY_SD_SECTION_CLASS) + r""" \\[6pt]
 \hline"""
         )
-    t52_content = "\n".join(t52_rows)
+    t52_content = _girder_rows(t52_rows, 5)
 
     # Generate Table 5.3 rows
     # Flexure UR is stored as a percent (cat_urs × 100); show as a ratio (÷100,
@@ -232,7 +287,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & Utilization Ratio, $M_u / M_d$ & $M_u / M_d$ & """ + _flex_ur_str + r""" & """ + _flex_status + r""" \\[6pt]
 \hline"""
         )
-    t53_content = "\n".join(t53_rows)
+    t53_content = _girder_rows(t53_rows, 5)
 
     # Generate Table 5.4 rows
     # Shear UR is stored as a percent (cat_urs × 100); show as a ratio (÷100,
@@ -264,7 +319,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & Utilization Ratio, $V_u / V_d$ & $V_u / V_d$ & """ + _shear_ur_str + r""" & """ + _shear_status + r""" \\[6pt]
 \hline"""
         )
-    t54_content = "\n".join(t54_rows)
+    t54_content = _girder_rows(t54_rows, 5)
 
     # Generate Table 5.5 rows
     # Interaction DCRs use the engine bands: PASS <0.90, WARN <1.00, FAIL ≥1.00.
@@ -304,7 +359,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & Interaction Check: $N_u/N_{Rd} + M_u/M_{dv} \leq 1.0$ & """ + _mn_cond + r""" & """ + _mn_val + r""" & """ + _mn_status + r""" \\[6pt]
 \hline"""
         )
-    t55_content = "\n".join(t55_rows)
+    t55_content = _girder_rows(t55_rows, 5)
 
     # Generate Table 5.6 rows
     # LTB UR stored as percent → show ratio (2 dp); engine bands via _interaction_status.
@@ -329,7 +384,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & $M_u \leq M_b$ & $M_u / M_b$ & """ + _ltb_ur_str + r""" & """ + _ltb_status + r""" \\[6pt]
 \hline"""
         )
-    t56_content = "\n".join(t56_rows)
+    t56_content = _girder_rows(t56_rows, 5)
 
     # Generate Table 5.7 rows
     t57_rows = []
@@ -348,7 +403,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & \textnormal{Longitudinal Stiffeners} & """ + _render_value(bridge.output_dict, KEY_SD_STIFF_LONG) + r""" \\[6pt]
 \hline"""
         )
-    t57_content = "\n".join(t57_rows)
+    t57_content = _girder_rows(t57_rows, 3)
 
     # Generate table - intermediate stiffener checks (IS 800 CL. 8.7.1.2)
     # Status: PASS when Provided ≥ Required.
@@ -422,7 +477,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
  & Column Buckling Resistance & """ + _cb_req + r""" & """ + _cb_prov + r""" & """ + _cb_st + r""" \\[6pt]
 \hline"""
         )
-    t59_content = "\n".join(t59_rows)
+    t59_content = _girder_rows(t59_rows, 5)
 
     # ── Table 5.10: Serviceability — Deflection Checks (IRC 22 Cl. 604.3.2) ──────
     # Allowable limits: span-dependent, same for all girders, from output_dict.
@@ -479,7 +534,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
             + _defl_status(_total_mm, _allow_total_mm) + r""" \\[6pt]
 \hline"""
         )
-    t510_content = "\n".join(t510_rows)
+    t510_content = _girder_rows(t510_rows, 5)
 
     # Generate Table 5.11 rows — SLS steel stress limitation (IRC 22 Cl. 604.3.1).
     # Concrete & rebar deck stresses are deck-global and belong with the deck
@@ -512,7 +567,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
             + _steel_status + r""" \\[6pt]
 \hline"""
         )
-    t511_content = "\n".join(t511_rows)
+    t511_content = _girder_rows(t511_rows, 5)
 
     # Generate Table 5.12 rows — per-girder fatigue assessment (IRC 22 Cl. 605),
     # mirroring the Generate Results dialog: one row per girder showing the
@@ -538,7 +593,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
             + _fat_status(_g.get("status")) + r""" \\[6pt]
 \hline"""
         )
-    t512_content = "\n".join(t512_rows)
+    t512_content = _girder_rows(t512_rows, 5)
 
     # Generate Table 5.13 rows — per-girder design summary, mirroring the Generate
     # Results dialog's resolve_design_results_summary: one row per girder showing
@@ -584,7 +639,7 @@ def ch5_design_checks(checks_data, bridge) -> str:
             + r""" & """ + _fat_status(ctrl.get("status")) + r""" \\[6pt]
 \hline"""
         )
-    g_summary_table_content = "\n".join(g_summary_rows)
+    g_summary_table_content = _girder_rows(g_summary_rows, 7)
 
     # ── Table 5.14: Shear Connector Capacity (bridge-level) ──────────────────
     # Qu (Cl.606.3.1, Eq.6.1) and Qr (Cl.606.3.2, Table 8) are single per-stud
@@ -804,14 +859,12 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
 
     # ── Deck slab design value helpers (Tables 5.17 a/b/c/e/g) ────────────────
     # Read from deck_rpt = output_dict["deck_report_values"] (common.KEY_DD_*).
-    # Tables 5.17(d) punching shear and 5.17(f) one-way shear stay as
-    # placeholders — those are not computed by design_deck_slab().
     _dk_has = bool(deck_rpt)
     _dk_oh = bool(deck_rpt.get(KEY_DD_HAS_OVERHANG))
     _DKPH = r"\placeholder{---}"
 
     def _dkv(key, default=0.0):
-        """Raw float for status comparisons (0.0 if missing/non-numeric)."""
+        """Legacy numeric fallback for reference expressions, never status checks."""
         v = deck_rpt.get(key)
         if v is None or v == "":
             return default
@@ -830,11 +883,41 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
         try:
             return f"{float(v) * scale:.{nd}f}"
         except (TypeError, ValueError):
-            return str(v)
+            return _tex(v)
 
     def _dks(ok):
-        """PASS/FAIL status; '---' when deck design not run."""
-        return ("PASS" if ok else "FAIL") if _dk_has else "---"
+        """Keep an unavailable status distinct from an explicit failed check."""
+        if not _dk_has or ok is None:
+            return "N/A"
+        flag = str(ok).strip().lower()
+        if flag in ("true", "yes", "1", "pass"):
+            return "PASS"
+        if flag in ("false", "no", "0", "fail"):
+            return "FAIL"
+        return "N/A"
+
+    def _dk_capacity_ok(demand_key, capacity_key):
+        ratio = demand_capacity_ratio(deck_rpt.get(demand_key), deck_rpt.get(capacity_key))
+        return ratio <= 1 if ratio is not None else None
+
+    def _dk_ratio(demand_key, capacity_key):
+        ratio = demand_capacity_ratio(deck_rpt.get(demand_key), deck_rpt.get(capacity_key))
+        return f"{ratio:.2f}" if ratio is not None else "N/A"
+
+    def _dk_spacing_ok():
+        spacing = nonnegative_number(deck_rpt.get(KEY_DD_SPC_BOT))
+        ratio = demand_capacity_ratio(spacing, deck_rpt.get(KEY_DD_SPACING_MAX))
+        return spacing > 0 and ratio <= 1 if ratio is not None else None
+
+    def _dk_distribution_ok():
+        main = nonnegative_number(deck_rpt.get(KEY_DD_AS_BOT))
+        minimum = nonnegative_number(deck_rpt.get(KEY_DD_AS_MIN))
+        if main is None or minimum is None:
+            return None
+        # This is the existing displayed comparison; guard its input values.
+        required = max(0.20 * main, minimum)
+        ratio = demand_capacity_ratio(required, deck_rpt.get(KEY_DD_AS_LONG))
+        return ratio <= 1 if ratio is not None else None
 
     def _dkoh(key, nd=2, scale=1.0, unit=""):
         """Overhang value; 'N/A' when there is no overhang."""
@@ -845,12 +928,14 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
         return _dkf(key, nd=nd, scale=scale) + unit
 
     # Governing crack width = max(bottom, top[, overhang]) vs the limit.
-    _dk_wks = [_dkv(KEY_DD_WK_BOT), _dkv(KEY_DD_WK_TOP)]
+    _dk_wks = [nonnegative_number(deck_rpt.get(KEY_DD_WK_BOT)),
+               nonnegative_number(deck_rpt.get(KEY_DD_WK_TOP))]
     if _dk_oh:
-        _dk_wks.append(_dkv(KEY_DD_WK_OH))
-    _dk_gov_wk = max(_dk_wks)
-    _dk_gov_wk_str = (f"{_dk_gov_wk:.4f}" if _dk_has else _DKPH)
-    _dk_crack_ok = _dk_has and _dk_gov_wk <= _dkv(KEY_DD_WK_LIMIT)
+        _dk_wks.append(nonnegative_number(deck_rpt.get(KEY_DD_WK_OH)))
+    _dk_gov_wk = max((value for value in _dk_wks if value is not None), default=None)
+    _dk_gov_wk_str = (f"{_dk_gov_wk:.4f}" if _dk_gov_wk is not None else _DKPH)
+    _dk_crack_ratio = demand_capacity_ratio(_dk_gov_wk, deck_rpt.get(KEY_DD_WK_LIMIT))
+    _dk_crack_ok = _dk_crack_ratio <= 1 if _dk_crack_ratio is not None else None
 
     # ── Table 5.22: Overall Design Check Summary — fill all rows ─────────────
     # Three row families:
@@ -873,10 +958,9 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
         return (s + " " + u) if u else s
 
     def _ur_522(v):
-        try:
-            f = float(v)
-        except (TypeError, ValueError):
-            return ""
+        f = nonnegative_number(v)
+        if f is None:
+            return "N/A"
         s = f"{f:.2f}"
         return (r"\textcolor{red}{" + s + "}") if f > 1.0 else s
 
@@ -906,7 +990,11 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
                 continue
             for chk in (gd.get("checks") or []):
                 if chk.get("check_id") in check_ids:
-                    d = chk.get("dcr") or 0.0
+                    if demand_capacity_ratio(chk.get("demand"), chk.get("capacity")) is None:
+                        continue
+                    d = nonnegative_number(chk.get("dcr"))
+                    if d is None:
+                        d = demand_capacity_ratio(chk.get("demand"), chk.get("capacity"))
                     if best is None or d > best[0]:
                         best = (d, chk.get("demand"), chk.get("capacity"),
                                 chk.get("demand_unit") or "", chk.get("capacity_unit") or "", g)
@@ -924,7 +1012,11 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
                     continue
                 for chk in (_ld.get("checks") or []):
                     if chk.get("id") in check_ids:
-                        d = chk.get("dcr") or 0.0
+                        if demand_capacity_ratio(chk.get("demand"), chk.get("capacity")) is None:
+                            continue
+                        d = nonnegative_number(chk.get("dcr"))
+                        if d is None:
+                            d = demand_capacity_ratio(chk.get("demand"), chk.get("capacity"))
                         if best is None or d > best[0]:
                             best = (d, chk.get("demand"), chk.get("capacity"), _lc)
         if best is None:
@@ -938,24 +1030,13 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
     _cb_pairs_522 = bridge.get_cb_pairs()
 
     def _cb_row(force_type):
-        best = None  # (ur, pair, member, capacity_str)
-        for pair in _cb_pairs_522:
-            for member in ("diagonal", "chord"):
-                cap = bridge.get_cb_capacity(pair, member, force_type)
-                eff = bridge.get_cb_efficiency(pair, member, force_type)
-                try:
-                    ur = float(eff)
-                except (TypeError, ValueError):
-                    continue
-                if best is None or ur > best[0]:
-                    best = (ur, pair, member, cap)
-        if best is None:
-            return ("---", "---", "---", "---")
-        ur, pair, member, cap = best
-        gov = bridge.get_cb_gov_lc(pair, member, force_type) or "---"
-        dem = f"{float(cap) * ur:.2f} kN" if cap else "---"
-        cap_s = (cap + " kN") if cap else "---"
-        return (gov, dem, cap_s, _ur_522(ur))
+        available = [check for check in transverse_checks(bridge.output_dict)
+                     if check.force_type == force_type and check.ratio is not None]
+        if not available:
+            return ("N/A", "N/A", "N/A", "N/A")
+        check = max(available, key=lambda result: result.ratio)
+        return (_tex(check.governing_lc), f"{check.demand:.2f} kN",
+                f"{check.capacity:.2f} kN", _ur_522(check.ratio))
 
     def _cb_slender_row():
         best = None  # (ratio, slend, limit)
@@ -992,31 +1073,28 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
             return ("---", "---", "---", "---")
         if is_oh and not _dk_oh:
             return (_deck_combo, "N/A", "N/A", "N/A")
-        dem = _dkv(dem_key)
-        cap = _dkv(cap_key)
-        ur = (dem / cap) if cap > 0 else None
+        dem = nonnegative_number(deck_rpt.get(dem_key))
+        cap = nonnegative_number(deck_rpt.get(cap_key))
+        ur = demand_capacity_ratio(dem, cap)
+        if ur is None:
+            return (_deck_combo, "N/A", "N/A", "N/A")
         return (_deck_combo, f"{dem:.2f} {unit}", f"{cap:.2f} {unit}", _ur_522(ur))
 
     def _row522_msg(label, msg):
         # Single message spanning the 4 data columns.
         return label + r" & \multicolumn{4}{c|}{" + msg + r"} \\[6pt]" + "\n\\hline"
 
-    # End diaphragm: when configured as Cross Bracing it is designed as bracing
-    # members → mirror the cross-bracing axial rows. For Rolled / Welded beam end
-    # diaphragms the moment/shear design is not implemented yet → show a message.
-    _ed_type = ""
-    for _k, _v in bridge.input_dict.items():
-        if str(_k).startswith(KEY_MP_ED_TYPE) and _v:
-            _ed_type = str(_v)
-            break
-    _ed_is_cb = "brac" in _ed_type.strip().lower()
-    if _ed_is_cb:
-        _ed_moment_row = _row522(r"End Diaphragm --- Moment", _cb_row("compression"))
-        _ed_shear_row  = _row522(r"End Diaphragm --- Shear",  _cb_row("tension"))
-    else:
-        _ed_msg = r"Rolled / Welded section --- design to be added"
-        _ed_moment_row = _row522_msg(r"End Diaphragm --- Moment", _ed_msg)
-        _ed_shear_row  = _row522_msg(r"End Diaphragm --- Shear",  _ed_msg)
+    def _ed_row(nature):
+        available = [check for check in transverse_checks(bridge.output_dict, diaphragm=True)
+                     if check.force_type == nature and check.ratio is not None]
+        if not available:
+            return ("N/A", "N/A", "N/A", "N/A")
+        check = max(available, key=lambda result: result.ratio)
+        return (_tex(check.governing_lc), f"{check.demand:.2f} kN",
+                f"{check.capacity:.2f} kN", _ur_522(check.ratio))
+
+    _ed_moment_row = _row522(r"End Diaphragm --- Compression", _ed_row("compression"))
+    _ed_shear_row = _row522(r"End Diaphragm --- Tension", _ed_row("tension"))
 
     # Crack width (slab): governing crack width vs limit from the deck designer
     # (frequent SLS combination). _dk_gov_wk is the max of bottom/top/overhang wk.
@@ -1035,12 +1113,12 @@ Fatigue Shear Resistance, $Q_r$ & IRC 22 Table 8 ($\phi d$, $N_{sc}$) & """
                     best = (_d, _lc)
         return _tex(str(best[1]).strip()) if best else "Frequent SLS"
 
-    _wk_lim = _dkv(KEY_DD_WK_LIMIT)
+    _wk_lim = nonnegative_number(deck_rpt.get(KEY_DD_WK_LIMIT))
     _crack_cells = (
         (_gov_sls_frequent() if _dk_has else "---"),
-        (f"{_dk_gov_wk:.3f} mm" if _dk_has else "---"),
-        (f"{_wk_lim:.3f} mm" if _dk_has else "---"),
-        (_ur_522(_dk_gov_wk / _wk_lim) if (_dk_has and _wk_lim > 0) else "---"),
+        (f"{_dk_gov_wk:.3f} mm" if _dk_gov_wk is not None else "N/A"),
+        (f"{_wk_lim:.3f} mm" if _wk_lim is not None else "N/A"),
+        _ur_522(_dk_crack_ratio),
     )
 
     _t522 = [
@@ -1135,6 +1213,8 @@ This section presents all structural design checks performed by OsdagBridge. For
 \vspace{1em}
 \begin{longtable}{|C{2.5cm}|L{6.5cm}|>{\arraybackslash}p{6.5cm}|}
 \caption{\textbf{Stiffener Design Summary}}
+\hline
+\textbf{Girder} & \textbf{Parameter} & \textbf{Value} \\[6pt]
 \hline
 """ + t57_content + r"""
 \end{longtable}
@@ -1271,13 +1351,13 @@ The reinforced concrete deck slab is designed per IRC~112:2011 (flexure, shear, 
 \cline{2-5}
  & Effective depth, $d$ & $t_s - c_{nom} - \phi/2$ & """ + _dkf(KEY_DD_D_BOT, nd=1) + r""" mm & --- \\[6pt]
 \cline{2-5}
- & Moment Capacity, $M_{Rd}$ & IRC 112 Cl. 12.2 & """ + _dkf(KEY_DD_MU_BOT, nd=2) + r""" kN-m/m & """ + _dks(_dkv(KEY_DD_MU_BOT) >= _dkv(KEY_DD_M_ULS_SAG)) + r""" \\[6pt]
+ & Moment Capacity, $M_{Rd}$ & IRC 112 Cl. 12.2 & """ + _dkf(KEY_DD_MU_BOT, nd=2) + r""" kN-m/m & """ + _dks(_dk_capacity_ok(KEY_DD_M_ULS_SAG, KEY_DD_MU_BOT)) + r""" \\[6pt]
 \hline
 \multirow{3}{*}{\makecell{At Support\\(Hogging)}} & Total Design BM, $M_{u,hog}$ & """ + _dkf(KEY_DD_GAMMA_DL, nd=2) + r""" DL + """ + _dkf(KEY_DD_GAMMA_LL, nd=2) + r""" LL (at support) & """ + _dkf(KEY_DD_M_ULS_HOG, nd=2) + r""" kN-m/m & --- \\[6pt]
 \cline{2-5}
  & Required Top Steel, $A_{st,top}$ & $M_u / (0.87\,f_y\,d)$ & """ + _dkf(KEY_DD_AS_REQ_TOP, nd=0) + r""" mm²/m & --- \\[6pt]
 \cline{2-5}
- & Moment Capacity, $M_{Rd}$ & IRC 112 Cl. 12.2 & """ + _dkf(KEY_DD_MU_TOP, nd=2) + r""" kN-m/m & """ + _dks(_dkv(KEY_DD_MU_TOP) >= _dkv(KEY_DD_M_ULS_HOG)) + r""" \\[6pt]
+ & Moment Capacity, $M_{Rd}$ & IRC 112 Cl. 12.2 & """ + _dkf(KEY_DD_MU_TOP, nd=2) + r""" kN-m/m & """ + _dks(_dk_capacity_ok(KEY_DD_M_ULS_HOG, KEY_DD_MU_TOP)) + r""" \\[6pt]
 \hline
 \end{longtable}
 \noindent\textit{Note: IRC 112 Cl. 12.2. Distribution (longitudinal) reinforcement designed for 20\% of main steel moment (IRC 21 Cl. 305.18).}
@@ -1298,7 +1378,7 @@ Live Load Moment (eccentric wheel) & Wheel load $\times$ arm & """ + _dkoh(KEY_D
 \hline
 Total Hogging Moment, $M_{u,oh}$ & """ + _dkf(KEY_DD_GAMMA_DL, nd=2) + r""" DL + """ + _dkf(KEY_DD_GAMMA_LL, nd=2) + r""" (LL + CB) & """ + _dkoh(KEY_DD_M_ULS_OH, nd=2, unit=" kN-m/m") + r""" & --- \\[6pt]
 \hline
-Moment Capacity (top steel), $M_{Rd,oh}$ & IRC 112 Cl. 12.2 & """ + _dkoh(KEY_DD_MU_OH, nd=2, unit=" kN-m/m") + r""" & """ + (_dks(_dkv(KEY_DD_MU_OH) >= _dkv(KEY_DD_M_ULS_OH)) if _dk_oh else ("N/A" if _dk_has else "---")) + r""" \\[6pt]
+Moment Capacity (top steel), $M_{Rd,oh}$ & IRC 112 Cl. 12.2 & """ + _dkoh(KEY_DD_MU_OH, nd=2, unit=" kN-m/m") + r""" & """ + (_dks(_dk_capacity_ok(KEY_DD_M_ULS_OH, KEY_DD_MU_OH)) if _dk_oh else ("N/A" if _dk_has else "---")) + r""" \\[6pt]
 \hline
 \end{longtable}
 \noindent\textit{Note: IRC 6 Cl. 206.4 crash barrier loads applied at kerb face; IRC 112 Cl. 12.2 flexure.}
@@ -1321,7 +1401,7 @@ Punching Shear Stress, $v_{Ed}$ & $V_{Ed} / (u_1\,d)$ & """ + _dkf(KEY_DD_PUNCH_
 \hline
 Punching Resistance, $v_{Rd,c}$ & IRC 112 Eq.\ 10.1 & """ + _dkf(KEY_DD_VRD_C_MPA, nd=3) + r""" MPa & --- \\[6pt]
 \hline
-Punching Shear Check & $v_{Ed} \leq v_{Rd,c}$ & """ + (f"{_dkv(KEY_DD_PUNCH_VED) / _dkv(KEY_DD_VRD_C_MPA):.2f}" if (_dk_has and _dkv(KEY_DD_VRD_C_MPA) > 0) else _DKPH) + r""" & """ + _dks(bool(deck_rpt.get(KEY_DD_PUNCH_OK))) + r""" \\[6pt]
+Punching Shear Check & $v_{Ed} \leq v_{Rd,c}$ & """ + _dk_ratio(KEY_DD_PUNCH_VED, KEY_DD_VRD_C_MPA) + r""" & """ + _dks(deck_rpt.get(KEY_DD_PUNCH_OK)) + r""" \\[6pt]
 \hline
 \end{longtable}
 \noindent\textit{Note: Punching shear reinforcement not typically required for deck slabs with $d \geq 200$ mm and adequate longitudinal reinforcement.}
@@ -1361,7 +1441,7 @@ Long.\ reinforcement ratio, $\rho_l$ & $A_{sl}/(b_w\,d) \leq 0.02$ & """ + (f"{m
 \hline
 Shear resistance (no stirrups), $V_{Rd,c}$ & $v_{Rd,c}\,b_w\,d$ (Cl.\ 10.3.2) & """ + _dkf(KEY_DD_SHEAR_VRDC, nd=2) + r""" kN/m & --- \\[6pt]
 \hline
-One-Way Shear Check & $V_{Ed} \leq V_{Rd,c}$ & """ + (f"{_dkv(KEY_DD_SHEAR_VED) / _dkv(KEY_DD_SHEAR_VRDC):.2f}" if (_dk_has and _dkv(KEY_DD_SHEAR_VRDC) > 0) else _DKPH) + r""" & """ + _dks(bool(deck_rpt.get(KEY_DD_SHEAR_OK))) + r""" \\[6pt]
+One-Way Shear Check & $V_{Ed} \leq V_{Rd,c}$ & """ + _dk_ratio(KEY_DD_SHEAR_VED, KEY_DD_SHEAR_VRDC) + r""" & """ + _dks(deck_rpt.get(KEY_DD_SHEAR_OK)) + r""" \\[6pt]
 \hline
 \end{longtable}
 \noindent\textit{Note: IRC 112 Cl. 10.3.2. Shear reinforcement not provided in deck slabs; capacity relies on concrete and main reinforcement.}
@@ -1374,28 +1454,28 @@ One-Way Shear Check & $V_{Ed} \leq V_{Rd,c}$ & """ + (f"{_dkv(KEY_DD_SHEAR_VED) 
 \hline
 \multicolumn{4}{|l|}{\textbf{Main Reinforcement --- Bottom (Transverse)}} \\[6pt]
 \hline
-Required Area, $A_{st,req}$ (mm²/m) & """ + _dkf(KEY_DD_AS_REQ_BOT, nd=0) + r""" mm²/m & """ + _dkf(KEY_DD_AS_BOT, nd=0) + r""" mm²/m & """ + _dks(_dkv(KEY_DD_AS_BOT) >= _dkv(KEY_DD_AS_REQ_BOT)) + r""" \\[6pt]
+Required Area, $A_{st,req}$ (mm²/m) & """ + _dkf(KEY_DD_AS_REQ_BOT, nd=0) + r""" mm²/m & """ + _dkf(KEY_DD_AS_BOT, nd=0) + r""" mm²/m & """ + _dks(_dk_capacity_ok(KEY_DD_AS_REQ_BOT, KEY_DD_AS_BOT)) + r""" \\[6pt]
 \hline
 Bar Diameter $\times$ Spacing & $\phi \geq 10$ mm (IRC 112) & $\phi$""" + _dkf(KEY_DD_DIA_BOT, nd=0) + r""" @ """ + _dkf(KEY_DD_SPC_BOT, nd=0) + r""" mm c/c & --- \\[6pt]
 \hline
-Min.\ Reinforcement $A_{s,min}$ (IRC 112 Cl. 16.3.1) & """ + _dkf(KEY_DD_AS_MIN, nd=0) + r""" mm²/m & """ + _dkf(KEY_DD_AS_BOT, nd=0) + r""" mm²/m & """ + _dks(_dkv(KEY_DD_AS_BOT) >= _dkv(KEY_DD_AS_MIN)) + r""" \\[6pt]
+Min.\ Reinforcement $A_{s,min}$ (IRC 112 Cl. 16.3.1) & """ + _dkf(KEY_DD_AS_MIN, nd=0) + r""" mm²/m & """ + _dkf(KEY_DD_AS_BOT, nd=0) + r""" mm²/m & """ + _dks(_dk_capacity_ok(KEY_DD_AS_MIN, KEY_DD_AS_BOT)) + r""" \\[6pt]
 \hline
-Max.\ Bar Spacing (IRC 112 Cl. 16.3.2) & """ + _dkf(KEY_DD_SPACING_MAX, nd=0) + r""" mm & """ + _dkf(KEY_DD_SPC_BOT, nd=0) + r""" mm & """ + _dks(0.0 < _dkv(KEY_DD_SPC_BOT) <= _dkv(KEY_DD_SPACING_MAX)) + r""" \\[6pt]
+Max.\ Bar Spacing (IRC 112 Cl. 16.3.2) & """ + _dkf(KEY_DD_SPACING_MAX, nd=0) + r""" mm & """ + _dkf(KEY_DD_SPC_BOT, nd=0) + r""" mm & """ + _dks(_dk_spacing_ok()) + r""" \\[6pt]
 \hline
 \multicolumn{4}{|l|}{\textbf{Distribution Reinforcement --- Longitudinal}} \\[6pt]
 \hline
-Required Area, $A_{st,dist}$ (mm²/m) & $\geq 20\%$ of main steel & """ + _dkf(KEY_DD_AS_LONG, nd=0) + r""" mm²/m & """ + _dks(_dkv(KEY_DD_AS_LONG) >= max(0.20 * _dkv(KEY_DD_AS_BOT), _dkv(KEY_DD_AS_MIN))) + r""" \\[6pt]
+Required Area, $A_{st,dist}$ (mm²/m) & $\geq 20\%$ of main steel & """ + _dkf(KEY_DD_AS_LONG, nd=0) + r""" mm²/m & """ + _dks(_dk_distribution_ok()) + r""" \\[6pt]
 \hline
 \multicolumn{4}{|l|}{\textbf{Top Reinforcement (Support / Cantilever Overhang)}} \\[6pt]
 \hline
-Required Area, $A_{st,top}$ (mm²/m) & """ + _dkf(KEY_DD_AS_REQ_TOP, nd=0) + r""" mm²/m & """ + _dkf(KEY_DD_AS_TOP, nd=0) + r""" mm²/m & """ + _dks(_dkv(KEY_DD_AS_TOP) >= _dkv(KEY_DD_AS_REQ_TOP)) + r""" \\[6pt]
+Required Area, $A_{st,top}$ (mm²/m) & """ + _dkf(KEY_DD_AS_REQ_TOP, nd=0) + r""" mm²/m & """ + _dkf(KEY_DD_AS_TOP, nd=0) + r""" mm²/m & """ + _dks(_dk_capacity_ok(KEY_DD_AS_REQ_TOP, KEY_DD_AS_TOP)) + r""" \\[6pt]
 \hline
 \multicolumn{4}{|l|}{\textbf{Cover and Detailing}} \\[6pt]
 \hline
-Clear Cover (IRC 112 Cl. 15.2) & $\geq$ """ + _dkf(KEY_DD_MIN_COVER, nd=0) + r""" mm (Table 14.2) & Top """ + _render_value(bridge.input_dict, KEY_DS_TOP_CLEAR_COVER) + r""" / Bottom """ + _render_value(bridge.input_dict, KEY_DS_BOTTOM_CLEAR_COVER) + r""" mm & """ + _dks(bool(deck_rpt.get(KEY_DD_COVER_OK))) + r""" \\[6pt]
+Clear Cover (IRC 112 Cl. 15.2) & $\geq$ """ + _dkf(KEY_DD_MIN_COVER, nd=0) + r""" mm (Table 14.2) & Top """ + _render_value(bridge.input_dict, KEY_DS_TOP_CLEAR_COVER) + r""" / Bottom """ + _render_value(bridge.input_dict, KEY_DS_BOTTOM_CLEAR_COVER) + r""" mm & """ + _dks(deck_rpt.get(KEY_DD_COVER_OK)) + r""" \\[6pt]
 \hline
 \end{longtable}
-\noindent\textit{Note: IRC 112 Cl. 16.3, IS 456 Cl. 26.5. All reinforcement provisions satisfy strength and detailing requirements.}
+\noindent\textit{Note: IRC 112 Cl. 16.3, IS 456 Cl. 26.5. Refer to the individual strength and detailing check statuses above.}
 
 % ===========================
 \section{Cross Bracing Design}
@@ -1461,7 +1541,7 @@ End diaphragms at the supports transfer transverse loads to the bearings, restra
 \hline
 \textbf{Panel} & \textbf{Member} & \textbf{Connection} & \textbf{Section} & \textbf{$A_g$ (mm²)} & \textbf{$r_{min}$ (mm)} \\[6pt]
 \hline
-""" + cb_forces_content + r"""
+""" + ed_forces_content + r"""
 \end{longtable}
 \noindent\textit{Note: $A_g$ = gross cross-sectional area; $r_{min}$ = minimum radius of gyration.}
 
@@ -1471,7 +1551,7 @@ End diaphragms at the supports transfer transverse loads to the bearings, restra
 \hline
 \textbf{Panel} & \textbf{Member} & \textbf{Nature} & \textbf{Eff.\ Length $KL$ (mm)} & \textbf{$KL/r$} & \textbf{Limit / Status} \\[6pt]
 \hline
-""" + cb_slenderness_content + r"""
+""" + ed_slenderness_content + r"""
 \end{longtable}
 \noindent\textit{Note:  3. Limit = 250 for compression members, 400 for tension members. $K = 1.0$ for members with both ends pinned.}
 
@@ -1482,7 +1562,7 @@ End diaphragms at the supports transfer transverse loads to the bearings, restra
 \hline
 \textbf{Panel} & \textbf{Member} & \textbf{Section} & \textbf{Governing LC} & \textbf{Demand (kN)} & \textbf{Capacity (kN)} & \textbf{UR} & \textbf{Status} \\[6pt]
 \hline
-""" + cb_capacity_content + r"""
+""" + ed_capacity_content + r"""
 \end{longtable}
 \noindent\textit{Note: Designed per IS 800 Cl. 7 (compression) and Cl. 6 (tension). OsdagBridge cross-bracing module used.}
 
@@ -1490,6 +1570,8 @@ End diaphragms at the supports transfer transverse loads to the bearings, restra
 \section{Overall Design Check Summary}
 \label{sec:overall-summary}
 % ===========================
+
+""" + chart_figure(chart_paths, "utilization", "Utilization ratios from existing design results. The dashed line marks UR = 1.0; N/A means no valid result was supplied. Girder and bracing bars show the highest available check ratio for each member. Refer to individual checks for code-specific warning bands.") + r"""
 
 \vspace{1em}
 \begin{longtable}{|C{3.4cm}|L{4.5cm}|C{2.3cm}|C{2.3cm}|>{\centering\arraybackslash}p{1.6cm}|}

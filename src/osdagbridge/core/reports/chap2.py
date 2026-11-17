@@ -1,3 +1,5 @@
+from .styles import styled_chapter
+
 # Chapter 2: Input Parameters — exact LaTeX template match
 
 
@@ -72,6 +74,7 @@ from osdagbridge.core.utils.common import (
 
 from osdagbridge.core.reports.report_utils import _render_value, get_girder_entries, _tex
 
+@styled_chapter
 def ch2_input_parameters(m, input_dict, output_dict=None):
     girder_entries = get_girder_entries(input_dict)
     n_girders = len(girder_entries)
@@ -85,9 +88,8 @@ def ch2_input_parameters(m, input_dict, output_dict=None):
 """)
     return r"""
 \chapter{Input Parameters}
+\ReportCaptionSetup
 
-\setlength{\abovecaptionskip}{2pt}
-\setlength{\belowcaptionskip}{2pt}
 
 This section documents all inputs provided to OsdagBridge. User-provided inputs are clearly distinguished from software-assumed defaults. Where the user did not supply a value, the software has applied the IRC/IS code default or an empirical guideline; these are annotated with an asterisk (\sdstar{}).
 
@@ -114,7 +116,7 @@ This section documents all inputs provided to OsdagBridge. User-provided inputs 
 \textnormal{Shade Temp. Max / Min (IRC 6)} & """ + (_render_value(input_dict,'shade_temp_max','')) + r""" °C / """ + (_render_value(input_dict,'shade_temp_min','')) + r""" °C \\
 \hline
 \end{tabular}
-\vspace{0.4cm}
+\ReportTableGap
 \end{table}
 
 \begin{table}[H]
@@ -138,7 +140,7 @@ This section documents all inputs provided to OsdagBridge. User-provided inputs 
 \hline
 \end{tabular}
 \end{table}
-\vspace{0.4cm}
+\ReportTableGap
 
 \begin{table}[H]
 \caption{\textbf{Material Selection}}
@@ -157,7 +159,7 @@ This section documents all inputs provided to OsdagBridge. User-provided inputs 
 \hline
 \end{tabular}
 \end{table}
-\vspace{0.4cm}
+\ReportTableGap
 
 \newpage
 \section{Additional Inputs}
@@ -165,7 +167,7 @@ This section documents all inputs provided to OsdagBridge. User-provided inputs 
 
 Where the user has modified additional inputs, those values are reported here. Where no modification was made, the software default is shown.
 
-\vspace{0.8cm}
+\ReportTableGap
 
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}
 \caption{\textbf{Typical Section Details}}
@@ -188,7 +190,7 @@ Where the user has modified additional inputs, those values are reported here. W
 \hline
 \end{longtable}
 
-\vspace{0.8em}
+\ReportTableGap
 
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}
 \caption{\textbf{Components Details}}
@@ -300,10 +302,10 @@ def _girder_tables(input_dict, n_girders):
     return (r"""
 \newpage
 
-\vspace{0.4em}
+\ReportTableGap
 \noindent
             
-\vspace{4pt}
+\ReportTableGap
 \begin{longtable}{|L{2.2cm}|L{1.8cm}|p{3.8cm}|p{3.8cm}|p{3.8cm}|}
 \caption{\textbf{Girder General Information}}
 \hline
@@ -313,9 +315,9 @@ def _girder_tables(input_dict, n_girders):
             + gen_rows
             + r"""\end{longtable}
 
-\vspace{0.6em}
+\ReportTableGap
 
-\vspace{4pt}
+\ReportTableGap
 \begin{longtable}{|L{1.8cm}|L{2.3cm}|L{1.8cm}|p{4.8cm}|p{4.8cm}|}
 \caption{\textbf{Girder Section Dimensions}}
 \hline
@@ -325,13 +327,13 @@ def _girder_tables(input_dict, n_girders):
             + dim_rows
             + r"""\end{longtable}
 
-\vspace{0.6em}
+\ReportTableGap
 
-\vspace{4pt}
+\ReportTableGap
 \begin{longtable}{|L{1.4cm}|p{2.2cm}|p{2.2cm}|p{3.0cm}|p{2.4cm}|p{2.2cm}|}
 \caption{\textbf{Girder Restraint and Stiffener Details}}\\
 \hline
-\textbf{Girder} & \textbf{Torsional / Warping Restraint} & \textbf{Web Philosophy} & \textbf{Intermediate Stiffeners} & \textbf{Longitudinal Stiffeners} & \textbf{Bearing Stiffener} \\[6pt]
+\textbf{Girder} & \textbf{Torsional / Warping Restraint} & \textbf{Web Philosophy} & \textbf{Inter\-mediate Stiffeners} & \textbf{Longitudinal Stiffeners} & \textbf{Bearing Stiffener} \\[6pt]
 \hline
 \endfirsthead
 \endhead
@@ -383,10 +385,8 @@ def _bracing_tables(input_dict, n_girders):
     return (r"""
 \newpage
 
-\vspace{0.4em}
-\setlength{\tabcolsep}{4pt}
-\setlength\LTleft{0pt}
-\setlength\LTright{\fill}
+\ReportTableGap
+
 
 \begin{longtable}{|L{2.2cm}|L{2.2cm}|L{3.0cm}|L{2.5cm}|C{1.8cm}|C{1.8cm}|}
 \caption{\textbf{Member Properties: Cross Bracing Details}}
@@ -397,11 +397,9 @@ def _bracing_tables(input_dict, n_girders):
 + cb_rows
 + r"""\end{longtable}
 
-\vspace{0.4em}
+\ReportTableGap
 \noindent
-\setlength{\tabcolsep}{4pt}
-\setlength\LTleft{0pt}
-\setlength\LTright{\fill}
+
 
 \begin{longtable}{|L{2.2cm}|L{2.2cm}|L{3.0cm}|L{2.5cm}|C{1.8cm}|C{1.8cm}|}
 \caption{\textbf{Member Properties: End Diaphragm Details}}
@@ -420,9 +418,9 @@ def _shear_connector_table(input_dict, output_dict=None):
     return r"""
 \label{subsec:shear-connectors}
 
-\vspace{2.2em}
+\ReportTableGap
 
-\vspace{0.4em}
+\ReportTableGap
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}
 \caption{\textbf{Shear Connector Details}}
 \hline
@@ -445,12 +443,12 @@ def _safety_factors_table(input_dict):
     return r"""
 \label{subsec:safety-factors}
 
-\vspace{2.2em}
+\ReportTableGap
 
-\vspace{0.3em}
+\ReportTableGap
 \noindent\textit{Note: All values are per IRC 22 Table 1 unless user-modified.}
 
-\vspace{0.4em}
+\ReportTableGap
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}
 \caption{\textbf{Partial Safety Factors}}
 \hline

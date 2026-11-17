@@ -7,22 +7,45 @@ from osdagbridge.core.utils.common import (
 
 
 def _tex(value):
-    """Escape a Python value for safe LaTeX embedding."""
-    s = str(value) if value is not None else ''
-    if not s:
-        return r''
-    # Normalise non-ASCII glyphs from section designations (e.g. "∠ 100 ⅹ 100ⅹ 10")
-    # that pdflatex cannot render.
-    for uni, ascii_ in [('∠', 'L'), ('ⅹ', 'x'), ('×', 'x')]:
-        s = s.replace(uni, ascii_)
-    s = s.replace('\\', r'\textbackslash{}')
-    for ch, esc in [('&', r'\&'), ('%', r'\%'), ('$', r'\$'), ('#', r'\#'),
-                    ('{', r'\{'), ('}', r'\}'),          
-                    ('_', r'\_\allowbreak{}'),            
-                    ('~', r'\textasciitilde{}'), ('^', r'\^{}')]:
-        s = s.replace(ch, esc)
-    s = s.replace(':', r':\allowbreak{}')
-    return s
+    """Escape plain text once, without escaping commands inserted by this function.
+
+    Common engineering glyphs are normalized for pdfLaTeX; trusted report
+    formulas must be passed separately, never through this plain-text function.
+    """
+    text = '' if value is None else str(value)
+    replacements = {
+        "\\": r"\textbackslash{}", "&": r"\&", "%": r"\%",
+        "$": r"\$", "#": r"\#", "{": r"\{", "}": r"\}",
+        "_": r"\_\allowbreak{}", "~": r"\textasciitilde{}",
+        "^": r"\textasciicircum{}", ":": r":\allowbreak{}",
+        "\u2220": "L", "\u2179": "x", "\u00d7": r"\ensuremath{\times}",
+        "\u00b2": r"\textsuperscript{2}", "\u00b3": r"\textsuperscript{3}",
+        "\u2013": "--", "\u2014": "---", "\u2212": "-", "\u2019": "'", "\u2018": "'",
+        "\u201c": "``", "\u201d": "''", "\u2264": r"\ensuremath{\leq}",
+        "\u2265": r"\ensuremath{\geq}", "\u00b0": r"\ensuremath{^\circ}",
+    }
+    return ''.join(replacements.get(character, character) for character in text)
+
+
+def extract_result_summary(result):
+    """Read upstream Osdag result aliases without importing its analysis solver.
+
+    This mirrors results_data._extract_osdag_summary's field mapping; it does
+    not calculate capacities or change any numerical result.
+    """
+    if not isinstance(result, dict) or not result:
+        return {}
+
+    def first(*names):
+        return next((result[name] for name in names if result.get(name) is not None), None)
+
+    return {
+        "section": first("section_size.designation", "Optimum.Designation"),
+        "capacity_kN": first("Member.tension_capacity", "Design.Strength"),
+        "efficiency": first("Member.efficiency", "Optimum.UR"),
+        "slenderness": result.get("Member.Slenderness"),
+        "connection": "Welded" if "Weld.Type" in result else "Bolted",
+    }
 
 
 def _render_value(source_dict, key, unit=""):

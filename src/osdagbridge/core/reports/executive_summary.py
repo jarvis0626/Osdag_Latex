@@ -1,3 +1,5 @@
+from .styles import styled_chapter
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXECUTIVE SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -31,7 +33,7 @@ def _max_member_efficiency(pair_designs):
     """Maximum Osdag 'efficiency' (utilization ratio) over a cross-bracing or
     end-diaphragm result dump (nested pair -> member -> force_type -> raw).
     Reads already-computed results only; nothing is recalculated here."""
-    from osdagbridge.core.bridge_types.plate_girder.results_data import _extract_osdag_summary
+    from .report_utils import extract_result_summary as _extract_osdag_summary
     if not isinstance(pair_designs, dict):
         return None
     best = None
@@ -54,6 +56,7 @@ def _max_member_efficiency(pair_designs):
     return best
 
 
+@styled_chapter
 def executive_summary(input_dict, output_dict, fig_paths) -> str:
     plan_fig = _fig_or_placeholder(fig_paths.get('girder_top'), 'Figure 1 -- Overall Bridge Plan')
     cs_fig = _fig_or_placeholder(fig_paths.get('cross_section'),
@@ -74,58 +77,37 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
     cb_results     = output_dict.get("crossbracing_design_results", {}) or {}
     ed_results     = output_dict.get("end_diaphragm_design_results", {}) or {}
 
-    # Overall Design Status — girder checks only: Pass if every check passes,
-    # otherwise Fail with the names of the failing checks. Each check carries a
-    # pre-computed {name, dcr, status}.
-    failing = []                        # failing check names (order-preserving, deduped)
-    gov_name, gov_dcr = "", None
-    girder_max_ur = None
-    for g, gd in per_girder.items():
-        if str(g).startswith("EB"):     # skip edge-beam pseudo girders
-            continue
-        for chk in (gd.get("checks") or []):
-            try:
-                _val = chk.get("dcr")
-                if _val is None:
-                    dcr = None
-                else:
-                    dcr = float(_val)
-            except (TypeError, ValueError):
-                dcr = None
-            name = str(chk.get("name", "")).strip()
-            is_fail = ("FAIL" in str(chk.get("status", "")).upper()) or (dcr is not None and dcr > 1.0)
-            if is_fail and name and name not in failing:
-                failing.append(name)
-            if dcr is not None:
-                if gov_dcr is None or dcr > gov_dcr:
-                    gov_dcr, gov_name = dcr, name
-                if girder_max_ur is None or dcr > girder_max_ur:
-                    girder_max_ur = dcr
-
-    if not per_girder:
-        overall_design_status = ""
-    elif failing:
-        overall_design_status = "Fail (" + ", ".join(failing) + ")"
+    # Reuse the same finite, capacity-validated ratios shown in Section 5.5.
+    # Missing results must not become a fabricated passing design outcome.
+    from .charts import utilization_series
+    component_series = utilization_series(input_dict, output_dict)
+    component_urs = []
+    outcomes = []
+    incomplete = False
+    for label, values in component_series.items():
+        valid = [value for value in values.values() if value is not None]
+        incomplete = incomplete or not valid or any(value is None for value in values.values())
+        if valid:
+            maximum = max(valid)
+            component_urs.append((maximum, label))
+            status = 'Exceeds UR limit' if maximum > 1 else 'Within UR limit (reported checks)'
+            outcomes.append(_tex(f'{label}: {status}; maximum UR {maximum:.2f}'))
+        else:
+            outcomes.append(_tex(f'{label}: No valid demand/capacity results'))
+    if any(value > 1 for value, _ in component_urs):
+        overall_design_status = 'Exceeds UR limit'
+    elif incomplete:
+        overall_design_status = 'Incomplete results - review unavailable checks'
     else:
-        overall_design_status = "Pass"
-
-    # Overall Utilization Ratio — the maximum UR across all bridge components,
-    # tagged with the governing component (e.g. "1.05 (Deck slab)").
-    component_urs = []                  # (ur_value, component_label)
-    if girder_max_ur is not None:
-        component_urs.append((girder_max_ur, "Girder"))
-    deck_max = _max_float([v for k, v in deck_results.items() if str(k).startswith("ur_")])
-    if deck_max is not None:
-        component_urs.append((deck_max, "Deck slab"))
-    for results, label in ((cb_results, "Cross bracing"), (ed_results, "End diaphragm")):
-        m = _max_member_efficiency(results)
-        if m is not None:
-            component_urs.append((m, label))
+        overall_design_status = 'Within UR limit (reported checks only)'
     if component_urs:
-        max_ur, max_label = max(component_urs, key=lambda t: t[0])
-        overall_utilization_ratio = f"{max_ur:.2f} ({max_label})"
+        max_ur, max_label = max(component_urs, key=lambda item: item[0])
+        overall_utilization_ratio = f'{max_ur:.2f} ({max_label})'
+        gov_name = max_label
     else:
-        overall_utilization_ratio = ""
+        overall_utilization_ratio = 'N/A'
+        gov_name = 'N/A'
+    outcomes_tex = (r'\\' + '\n').join(outcomes)
 
     gov = _tex(gov_name) if gov_name not in (None, '', 'None') else ''
     ur = _tex(overall_utilization_ratio) if overall_utilization_ratio else ''
@@ -157,11 +139,12 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
     sections = f"Section Designation & {sec_cells} \\\\"
     gov_cells = ' & '.join([gov] * n_cols)
     gov_checks = f"Governing Check & {gov_cells} \\\\"
-    ur_cells = ' & '.join([ur] * n_cols)
+    girder_series = component_series.get('Steel plate girders', {})
+    ur_cells = ' & '.join(_tex(f'{girder_series[lbl]:.2f}') if girder_series.get(lbl) is not None else 'N/A' for lbl, _ in labels)
     urs = f"Utilization Ratio & {ur_cells} \\\\"
 
     table1 = (r'\noindent\textbf{Table 1 -- Final Bridge Geometry (after optimization)}' + '\n\n'
-              r'\vspace{0.4em}' + '\n'
+              r'\ReportTableGap' + '\n'
               r'\noindent' + '\n'
               r'\begin{tabular}{' + col_spec + '}\n'
               r'\hline' + '\n'
@@ -179,9 +162,9 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
 
     return r"""
 \newpage
-{\centering\Large\bfseries Executive Summary\par}
+{\ReportExecutiveTitle Executive Summary\par}
 \addcontentsline{toc}{chapter}{Executive Summary}
-\vspace{0.8em}
+\ReportTableGap
 
 This section provides a concise summary of the bridge design, key inputs, governing loads, and final design outcomes.
 
@@ -221,19 +204,16 @@ This section provides a concise summary of the bridge design, key inputs, govern
 
 """ + cs_fig + '\n\n' + geom_fig + '\n\n' + table1 + r"""
 
-\vspace{0.4em}
-\noindent\textit{Note: Utilization ratio (UR) = demand / capacity. A value $< 1.0$ indicates a passing check.}
+\ReportTableGap
+\noindent\textit{Note: Utilization ratio (UR) = demand / capacity. The chart reference limit is $1.0$. Missing results remain unavailable; review each engine check and status.}
 
-\vspace{1em}
+\ReportTableGap
 
 \section*{Key Design Outcomes Summary}
 \addcontentsline{toc}{section}{Key Design Outcomes Summary}
 \label{sec:key-outcomes}
 
-\noindent Girder design pass \\
-Cross bracing design pass \\
-End Diaphragm design pass \\
-Deck design pass
+\noindent """ + outcomes_tex + r"""
 
 \section*{Design Assumptions and Limitations}
 \addcontentsline{toc}{section}{Design Assumptions and Limitations}
@@ -241,12 +221,11 @@ Deck design pass
 
 \begin{itemize}
 \item Additional inputs not provided by the user were assumed by software per IRC/IS code defaults or practical consideration.
-\item Grillage analysis was performed using OSPGrillage assuming simply supported I-girders.
+\item This document renders supplied results. Generating a report does not run or validate a structural analysis.
 \item Substructure and foundation design are not included in this report.
 \item Splice connections and bearings are not designed in this version.
 \end{itemize}
 
 % Restore numbered chapter format
-\titleformat{\chapter}[block]{\normalfont\Large\bfseries\centering}{\thechapter}{1em}{}
-\titlespacing*{\chapter}{0pt}{-30pt}{10pt}
+\ReportChapterFormat
 """

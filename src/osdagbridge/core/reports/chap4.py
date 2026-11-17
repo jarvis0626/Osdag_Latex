@@ -1,3 +1,5 @@
+from .styles import styled_chapter
+
 from typing import TYPE_CHECKING
 from osdagbridge.core.utils.common import (
     KEY_SPAN,
@@ -10,6 +12,7 @@ from osdagbridge.core.reports.report_utils import _tex, _fig_embed
 if TYPE_CHECKING:
     from .report_generator import ReportDataBridge
 
+@styled_chapter
 def ch4_analysis(asum, fig_paths, bridge: "ReportDataBridge", span_m: float):
     lc_summary  = (asum or {}).get('load_cases', {})
     rxn_summary = (asum or {}).get('reactions',  {})
@@ -73,36 +76,34 @@ def ch4_analysis(asum, fig_paths, bridge: "ReportDataBridge", span_m: float):
     _total_str       = f"{_total_mm:.3f} mm" if _total_mm is not None else "---"
     _allow_live_str  = f"L/800 = {_allow_live_mm:.1f} mm"
     _allow_total_str = f"L/600 = {_allow_total_mm:.1f} mm"
-    _live_status     = ("PASS" if _live_mm  <= _allow_live_mm  else r"\textcolor{red}{FAIL}") if _live_mm  is not None else "---"
-    _total_status    = ("PASS" if _total_mm <= _allow_total_mm else r"\textcolor{red}{FAIL}") if _total_mm is not None else "---"
+    _live_status     = ("PASS" if _live_mm  <= _allow_live_mm  else r"\textcolor{reportFail}{FAIL}") if _live_mm  is not None else "---"
+    _total_status    = ("PASS" if _total_mm <= _allow_total_mm else r"\textcolor{reportFail}{FAIL}") if _total_mm is not None else "---"
     return r"""
 \chapter{Analysis Results}
 
 A grillage model was used for structural analysis. The deck is idealized as a grid of elastic beam elements --- longitudinal members represent the composite steel girders with effective slab, and transverse members represent the slab or cross frames. This section summarizes the critical output from that analysis.
 
-\vspace{1em}
+\ReportTableGap
 \begingroup
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.25}
+
 
 \begin{longtable}{|
 >{\centering\arraybackslash}p{3.1cm}|
 >{\centering\arraybackslash}p{1.7cm}|
->{\centering\arraybackslash}p{1.2cm}|
+>{\centering\arraybackslash}p{1.35cm}|
 >{\centering\arraybackslash}p{1.3cm}|
 >{\centering\arraybackslash}p{1.7cm}|
->{\centering\arraybackslash}p{1.2cm}|
+>{\centering\arraybackslash}p{1.35cm}|
 >{\centering\arraybackslash}p{1.3cm}|
 >{\centering\arraybackslash}p{1.6cm}|
 >{\centering\arraybackslash}p{1.6cm}|}
 
 \caption{\textbf{Summary of Maximum Demands}}\\
 \hline
-\multirow{2}{*}{\makecell{\textbf{Load}\\\textbf{Case/}\\\textbf{Comb.}}}
+\multirow{2}{*}{\makecell{\textbf{Load Case /}\\\textbf{Combination}}}
 & \multicolumn{3}{c|}{\textbf{Bending Moment}}
 & \multicolumn{3}{c|}{\textbf{Shear Force}}
-& \multicolumn{2}{c|}{\textbf{Reaction at Supports}}\\
+& \multicolumn{2}{c|}{\makecell{\textbf{Reaction at}\\\textbf{Supports}}}\\
 \cline{2-9}
 
 & \makecell{\textbf{Max}\\\textbf{(kNm)}}
@@ -117,10 +118,10 @@ A grillage model was used for structural analysis. The deck is idealized as a gr
 \endfirsthead
 
 \hline
-\multirow{2}{*}{\makecell{\textbf{Load}\\\textbf{Case/}\\\textbf{Comb.}}}
+\multirow{2}{*}{\makecell{\textbf{Load Case /}\\\textbf{Combination}}}
 & \multicolumn{3}{c|}{\textbf{Bending Moment}}
 & \multicolumn{3}{c|}{\textbf{Shear Force}}
-& \multicolumn{2}{c|}{\textbf{Reaction at Supports}}\\
+& \multicolumn{2}{c|}{\makecell{\textbf{Reaction at}\\\textbf{Supports}}}\\
 \cline{2-9}
 
 & \makecell{\textbf{Max}\\\textbf{(kNm)}}
@@ -140,7 +141,7 @@ A grillage model was used for structural analysis. The deck is idealized as a gr
 \end{longtable}
 \endgroup
 
-\vspace{1em}
+\ReportTableGap
 \begin{longtable}{|>{\centering\arraybackslash}p{5.2cm}|>{\centering\arraybackslash}p{5.2cm}|>{\centering\arraybackslash}p{5.2cm}|}
 \caption{\textbf{Reactions at Supports}}
 \hline
@@ -154,7 +155,7 @@ A grillage model was used for structural analysis. The deck is idealized as a gr
 \hline
 \end{longtable}
 
-\vspace{1em}
+\ReportTableGap
 \begin{longtable}{|L{7cm}|p{8.5cm}|}
 \caption{\textbf{Deflection Summary (Live Load \& Total Load)}}
 \hline
@@ -174,7 +175,7 @@ A grillage model was used for structural analysis. The deck is idealized as a gr
 \hline
 \end{longtable}
 
-\vspace{1em}
+\ReportTableGap
 \noindent
 """ + _fig_embed(fig_paths.get('bm_envelope'), 'Bending Moment Envelope (Envelope ULS): Max/min BM along span. X-axis: distance from left support (m). Y-axis: Bending Moment (kN-m).', width=r'0.75\textwidth') + r"""
 """ + _fig_embed(fig_paths.get('sf_envelope'), 'Shear Force Envelope (Envelope ULS): Max/min SF along span. X-axis: distance from left support (m). Y-axis: Shear Force (kN).', width=r'0.75\textwidth') + r"""
