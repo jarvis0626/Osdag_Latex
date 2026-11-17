@@ -3,6 +3,7 @@ name: Report generation
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,6 +25,7 @@ jobs:
       - run: python -m pip install -r requirements-report.txt "pytest>=8,<10" "pypdf>=5,<7" "PyMuPDF>=1.24,<2"
       - run: python -m pytest -q
       - run: python run_report.py --demo --no-pdf
+      - run: python scripts/package_reports.py
 
   real-pdf:
     runs-on: ubuntu-latest
@@ -38,3 +40,15 @@ jobs:
         env:
           OSDAG_TEST_LATEX: ${{ github.workspace }}/.tools/tectonic
       - run: .venv/bin/python run_report.py --demo
+      - run: .venv/bin/python scripts/run_report_matrix.py --compiler .tools/tectonic
+      - run: .venv/bin/python scripts/package_reports.py
+      - run: .venv/bin/python -m pytest tests/reports/test_packaged_runtime.py -q
+        env:
+          OSDAG_TEST_PACKAGE: ${{ github.workspace }}/dist/OsdagBridge-Reports.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OsdagBridge-Reports
+          path: |
+            dist/OsdagBridge-Reports.zip
+            dist/OsdagBridge-Reports.zip.sha256
+            output/report-matrix/summary.json

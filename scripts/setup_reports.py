@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import io
+import json
 from pathlib import Path
 import platform
 import subprocess
@@ -48,6 +49,9 @@ def install_compiler():
     target.parent.mkdir(exist_ok=True)
     target.write_bytes(executable)
     target.chmod(0o755)
+    marker = {"version": "0.17.0", "archive_sha256": expected,
+              "executable_sha256": hashlib.sha256(executable).hexdigest()}
+    target.with_suffix(target.suffix + ".json").write_text(json.dumps(marker), encoding="utf-8")
     print("Compiler installed:", target)
 
 
@@ -55,6 +59,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--with-compiler", action="store_true")
     parser.add_argument("--dev", action="store_true", help="Also install test and PDF inspection dependencies.")
+    parser.add_argument("--inspect-tools", action="store_true", help="Install PDF inspection tools without the test runner.")
     args = parser.parse_args()
     if not (3, 11) <= sys.version_info[:2] < (3, 13):
         parser.error("Use Python 3.11 or 3.12, as required by OsdagBridge.")
@@ -63,8 +68,10 @@ def main():
         venv.EnvBuilder(with_pip=True).create(environment)
     python = environment / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
     command = [str(python), "-m", "pip", "install", "-r", str(ROOT / "requirements-report.txt")]
+    if args.dev or args.inspect_tools:
+        command.extend(["pypdf>=5,<7", "PyMuPDF>=1.24,<2"])
     if args.dev:
-        command.extend(["pytest>=8,<10", "pypdf>=5,<7", "PyMuPDF>=1.24,<2"])
+        command.append("pytest>=8,<10")
     subprocess.run(command, check=True)
     if args.with_compiler:
         install_compiler()

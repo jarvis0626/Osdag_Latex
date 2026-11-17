@@ -1,0 +1,26 @@
+*
+!Dockerfile
+!requirements-report.txt
+!run_report.py
+!scripts/
+scripts/*
+!scripts/setup_reports.py
+!src/
+!src/osdagbridge/
+!src/osdagbridge/core/
+!src/osdagbridge/core/reports/
+!src/osdagbridge/core/reports/**
+!src/osdagbridge/core/utils/
+!src/osdagbridge/core/utils/common.py
+!src/osdagbridge/core/utils/codes/
+!src/osdagbridge/core/utils/codes/irc6_2017.py
+!src/osdagbridge/core/utils/codes/irc5_2015.py
+!src/osdagbridge/core/utils/codes/keyfile.py
+!src/osdagbridge/core/boq/
+!src/osdagbridge/core/boq/boq_generator.py
+!src/osdagbridge/core/data/
+!src/osdagbridge/core/data/ResourceFiles/
+!src/osdagbridge/core/data/ResourceFiles/vectors/
+!src/osdagbridge/core/data/ResourceFiles/vectors/Osdag Logo.png
+**/__pycache__/
+**/*.pyc
