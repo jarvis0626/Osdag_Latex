@@ -87,7 +87,7 @@
               "dcr": 0.93,
               "demand_unit": "kNm",
               "capacity_unit": "kNm",
-              "status": "PASS"
+              "status": "WARN"
             }
           ]
         }

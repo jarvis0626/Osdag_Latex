@@ -2,7 +2,7 @@
   "date": "2026-11-17",
   "scope": "Synthetic report rendering; no bridge analysis or GUI run",
   "baseline_revision": "d74f56dd7f22925fb8148cabf5740ed8d1e39ff3",
-  "implementation_commit": "11e1d97",
+  "implementation_commit": "3d3c4da",
   "python": "3.12.3",
   "dependencies": {
     "matplotlib": "3.11.2",
@@ -12,37 +12,12 @@
     "PyMuPDF": "1.28.2"
   },
   "compiler": "Tectonic 0.17.0",
-  "tests": {
-    "command": "OSDAG_TEST_LATEX=<tectonic executable> python -m pytest -q",
-    "passed": 160,
-    "skipped": 0
-  },
-  "pagination": {
-    "unique_rows": 100,
-    "pages": 4,
-    "rows_per_page": [
-      28,
-      29,
-      29,
-      14
-    ],
-    "minimum_footer_clearance_pt": 43.56,
-    "member_labels": [
-      "G1",
-      "G2",
-      "G3",
-      "G4",
-      "G5"
-    ],
-    "each_member_label_count": 20,
-    "geometry_reader": "PyMuPDF"
-  },
-  "baseline_compilation": "Original templates retained, with continue-on-errors to match upstream nonstop behavior; not a clean LaTeX compilation",
-  "enhanced_compilation": "Successful compiler exit and PDF validation; minor layout/fontconfig warnings remain",
+  "baseline_compilation": "Original templates retained; continued through upstream LaTeX errors",
+  "enhanced_compilation": "Successful exit and valid PDF; minor layout warnings remain",
   "reports": {
     "Report_Before": {
       "pdf": "artifacts/demo/Report_Before.pdf",
-      "sha256": "aa0db6f2a53167fe54da4a76b4c717cd1882da33e55af462fbfb72213f5c76d8",
+      "sha256": "693e1dda930aa91e6f78948ec4773134111764ecef0afe62744451530fe76e82",
       "pages": 47,
       "source": "artifacts/demo/Report_Before.tex",
       "tables": 49,
@@ -50,11 +25,11 @@
     },
     "Report_After": {
       "pdf": "artifacts/demo/Report_After.pdf",
-      "sha256": "56889f3dd2a7148a6ac3d8fdcdd10586edc0031fcaa9454c0e640a9cdc1e6cf2",
-      "pages": 48,
+      "sha256": "658db534c6d9f64cde46fc885e1cb317905f9f29c7a6ab6f9097884aeba1ab0a",
+      "pages": 36,
       "source": "artifacts/demo/Report_After.tex",
-      "tables": 59,
-      "continuation_headers": 59
+      "tables": 45,
+      "continuation_headers": 45
     }
   }
 }

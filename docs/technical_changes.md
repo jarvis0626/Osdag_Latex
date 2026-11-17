@@ -1,5 +1,18 @@
 # Technical changes
 
+The follow-up audit also replaced repeated controlling-girder scalar tables
+with actual structured per-member checks, made missing cells and drawings
+explicit, added Greek/Celsius escaping, and preserved backend warning/failure
+bands. Conflicting supplied ratios are flagged with rounding-aware validation.
+The headless path now validates JSON structure and portable filenames and
+publishes source/PDF files atomically. See the
+[data audit](engineering_data_audit.md) for provenance and limitations.
+
+The Class A impact helper evaluation is labeled separately from a supplied
+backend governing multiplier. The legacy heavy-vehicle helper depends on
+module-level vehicle defaults, so its value is not presented as a selected-UI
+vehicle result. Numerical engineering routines remain unchanged.
+
 The original report pipeline already separated chapters into Python functions,
 but each chapter carried its own table widths and spacing. Large tables could
 exceed the page body, continuation pages could lose headings, and end diaphragm

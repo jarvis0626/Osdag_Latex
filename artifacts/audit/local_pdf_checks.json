@@ -1,0 +1,34 @@
+{
+  "scope": "Read-only local PDF structural inspection; original content and identifying paths are excluded. These are not bridge design fixtures.",
+  "documents": [
+    {
+      "document": "local_example_1",
+      "pages": 12,
+      "passed": true,
+      "warnings": 0,
+      "original_unchanged": true
+    },
+    {
+      "document": "local_example_2",
+      "pages": 3,
+      "passed": true,
+      "warnings": 1,
+      "original_unchanged": true
+    },
+    {
+      "document": "local_example_3",
+      "pages": 1,
+      "passed": true,
+      "warnings": 0,
+      "original_unchanged": true
+    },
+    {
+      "document": "local_example_4",
+      "pages": 1,
+      "passed": true,
+      "warnings": 0,
+      "original_unchanged": true
+    }
+  ],
+  "total_pages": 17
+}

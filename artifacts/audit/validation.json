@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-17",
+  "scope": "Reporting correctness and distribution audit; no full GUI bridge design or structural certification.",
+  "test_checkpoint": {
+    "source_commit": "f7bb7c9 plus follow-up styling and deployment changes",
+    "counts": {
+      "tests": 321,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "passed": 320,
+    "package_test": "Pending clean exported ZIP"
+  },
+  "report_matrix": {
+    "total": 33,
+    "passed": 33,
+    "failed": 0,
+    "evidence": "report_matrix.json",
+    "scope": "Synthetic inputs compiled using actual Tectonic; original engineering solvers not run."
+  },
+  "local_pdf_inspection": {
+    "documents": 4,
+    "pages": 17,
+    "all_originals_unchanged": true,
+    "evidence": "local_pdf_checks.json"
+  },
+  "pagination": {
+    "unique_rows": 100,
+    "pages": 4,
+    "minimum_footer_baseline_clearance_pt": 43.56,
+    "coordinate_library": "PyMuPDF"
+  },
+  "docker": {
+    "build_and_pdf_generation": "passed",
+    "final_rebuild": "pending after evidence commit"
+  },
+  "demonstration_pdfs": {
+    "evidence": "../demo/validation.json",
+    "synthetic": true
+  },
+  "limits": [
+    "Full GUI Design-to-Report workflow not executed.",
+    "Exact Winter task linkage and additional programme policies unverified.",
+    "Missing backend forces and end-diaphragm mass remain unavailable.",
+    "Upstream structural calculations and design adequacy are not certified by report tests."
+  ]
+}

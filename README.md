@@ -15,6 +15,13 @@ unchanged. See the [technical explanation](docs/technical_changes.md) and
 
 ## Run the report demo
 
+On Windows, double-click **Start_Report.cmd**. It prepares the environment on
+first use and opens a successful PDF in your normal viewer. Or run:
+
+```powershell
+python start.py
+```
+
 Use **Python 3.11 or 3.12** and an internet connection for setup. From this
 directory:
 
@@ -63,11 +70,28 @@ an optional error field to `ReportResult`.
 
 ## Verify the changes
 
+The [project walkthrough](docs/project_walkthrough.md) explains the actual
+execution flow. The [engineering data audit](docs/engineering_data_audit.md)
+distinguishes backend results, reporting arithmetic, inherited estimates and
+synthetic data. The [submission audit](docs/submission_audit.md) marks the
+remaining internship requirements explicitly.
+
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 $env:OSDAG_TEST_LATEX = "$PWD\.tools\tectonic.exe"
 .\.venv\Scripts\python.exe -m pytest tests/reports/test_pdf_integration.py -q
 ```
+
+Compile the varied report scenarios and inspect an existing local PDF:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/run_report_matrix.py --compiler .tools/tectonic.exe
+python start.py --inspect "C:\path\to\example.pdf"
+```
+
+Inspection reads the PDF locally; it does not turn it into bridge analysis
+data. Image-only pages produce a text-availability warning rather than being
+incorrectly rejected as invalid documents.
 
 The first command runs unit/regression tests; the real compiler test is skipped
 unless `OSDAG_TEST_LATEX` is set. On Linux/macOS, use
@@ -91,6 +115,10 @@ compiler errors in a diagnostic log. These rendering examples do not replace
 the task's required before/after comparison from the same full GUI design.
 
 ## Full desktop application
+
+For a reporting-only ZIP or container, follow [deployment instructions](docs/deployment.md).
+Development and baseline-comparison commands require the full Git checkout;
+the smaller distribution contains the report runtime.
 
 For actual bridge design, use the upstream Conda/CAD environment:
 

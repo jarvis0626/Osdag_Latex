@@ -1,64 +1,27 @@
 # Validation evidence and limits
 
-Verified on **17 November 2026**, Windows, Python 3.12, in a fresh `.venv`
-created by `scripts/setup_reports.py --dev`. The report environment contains
-Matplotlib and PyLaTeX, without the GUI, CAD tools, or OpenSeesPy. The optional
-Tectonic 0.17.0 installer was executed and its archive checksum verified.
+The follow-up audit ran on 17 November 2026 with Windows and Python 3.12 in the isolated reporting environment.
 
 ## Executed checks
 
-```powershell
-$env:OSDAG_TEST_LATEX = "$PWD\.tools\tectonic.exe"
-.\.venv\Scripts\python.exe -m pytest -q
-```
+The local suite currently records **320 passing tests**, including real Tectonic pagination, with the exported-package test gated until a ZIP is built. The final aggregate results and artifact hashes are recorded in `artifacts/audit/validation.json`; that manifest distinguishes the later distribution check from this checkpoint.
 
-Result: **160 passed**, including the real compiler integration test. The
-suite covers load selections, escaping, missing and invalid engineering
-results, cross-bracing/diaphragm separation, source assets, payload immutability,
-compiler failures/timeouts, stale PDFs, and real table pagination. Inherited
-placeholder tests are included in this total; they do not validate the GUI or
-structural solver.
+The varied report matrix compiles **33 distinct synthetic report scenarios** into actual PDFs. It covers missing geometry, one/twelve girders, optional chapters, vehicle selections, custom text, Unicode and Greek/Celsius symbols, long metadata, partial and nonfinite results, unity/exceeded ratios, separate transverse components, material scales, 150 load cases and supplied image bytes. The summary is in `artifacts/audit/report_matrix.json`. These are reporting fixtures, not independent bridge analyses.
 
-The real PDF fixture has **100 distinct rows over four pages**, with repeated
-column headings and each of five member labels repeated on its 20 rows. All
-rows occur exactly once. PyMuPDF measures a minimum **43.56pt** gap between the
-lowest table-row baseline and footer baseline, above the required 18pt margin
-used by this regression test. This measured threshold is a project test policy,
-not an invented internship rubric.
+Four existing nonpersonal local PDFs, covering **17 pages**, passed read-only structural inspection. One textless diagram page produced a warning rather than a false invalid-document failure. File hashes before and after inspection confirmed all originals were unchanged. Only anonymized outcomes are stored in `artifacts/audit/local_pdf_checks.json`; original content, filenames and paths are excluded.
 
-Both full synthetic reports were compiled using
-`scripts/build_comparison.py`. The enhanced PDF was regenerated from the final
-implementation and inspected for its expected chapters, utilization status,
-and material summary. Its source contains a continuation header for every
-longtable. Samples of the header, footer, long tables and charts were visually
-inspected during development. The compiler exits successfully; small overfull
-and underfull text-box warnings and a nonfatal local fontconfig message remain.
-No undefined references or duplicate page anchors were found in its final log.
+The real pagination fixture preserves **100 unique rows over four pages**, repeats headings and member labels, and checks footer clearance using PyMuPDF coordinates. The measured minimum baseline gap is **43.56pt**, above the 18pt project regression threshold. This is a test policy, not an internship evaluation rubric.
 
-The baseline deliberately retains upstream LaTeX errors. Its comparison-only
-compiler runs in continue-on-errors mode, matching the original renderer's
-nonstop behavior. Its existence is not evidence of a clean upstream compile.
+The Docker image was built and generated a real PDF in a Linux container. Source/package runtime checks also run from an unrelated directory with spaces and without the checkout on PYTHONPATH. The ZIP is allowlisted, has per-file hashes and normalizes text newlines for reproducible builds. The deployment instructions distinguish a source distribution from a bundled Python installation.
 
-[The artifact manifest](../artifacts/demo/validation.json) records exact PDF
-hashes, page/table counts, tool versions, and the synthetic-data limitation.
-The [demo artifacts](../artifacts/demo/README.md) explain how to reproduce them.
-`git diff --check` also passed. GitHub CI is configured separately; local
-results should not be confused with a completed remote CI run.
+The updated synthetic before/after comparison was generated from the same fixture. The enhanced document is compiled with a successful exit, parsed, and visually reviewed at the title, member-check, chart and material-summary pages. Small text-box/fontconfig warnings remain; arbitrary genuine GUI content still requires visual review. The original baseline intentionally retains upstream LaTeX errors and uses continue-on-errors mode, as disclosed in `artifacts/demo/README.md`.
 
-## Not yet established
+## Source and engineering scope
 
-- The complete desktop **Design → Generate Report** flow has not been run with
-  the upstream Conda/CAD environment or a genuine bridge project. Synthetic
-  before/after reports do not fulfill that final comparison requirement.
-- The Winter programme's nested task document could not be retrieved. The
-  exact detailed task used here was linked from the official Autumn programme;
-  the Winter linkage and any additional rules remain unverified.
-- The backend does not currently supply end-diaphragm BOQ mass or a canonical
-  centrifugal force result. Those values remain unavailable. The inherited
-  braking helper errors and is reported as N/A. No engineering routine was
-  changed to manufacture a result.
-- Reinforcement mass is the existing 120 kg/m³ estimate, not a detailed bar
-  schedule. Chart reference limits do not replace individual code-check rules.
-- Linux and Python 3.11 checks are configured in CI; they were not run locally.
-- The private repository has not been shared with the task's requested reviewer.
-  Its collaborator access and final programme submission remain separate work.
+There are no changes to the upstream designer, analyser, IRC helper implementations or BOQ calculator. Tests check report consistency and one dimensionally explicit BOQ example. They do not certify structural adequacy or every upstream numerical method. See [engineering data audit](engineering_data_audit.md).
+
+The initial GitHub Windows/Linux checks passed before this follow-up. The revised workflow additionally runs the varied PDF matrix and distribution smoke checks; its current remote status must be read from GitHub, not inferred from local results.
+
+## Submission limits
+
+The complete GUI/CAD Design-to-Report workflow has not been executed with a genuine bridge model. The before/after examples remain synthetic. End-diaphragm BOQ mass and some forces are missing; reinforcement mass remains an estimate. Standard editions and template assumptions require project-specific verification. Exact Winter task linkage/policies and reviewer access are unresolved. See [requirement-by-requirement audit](submission_audit.md).
