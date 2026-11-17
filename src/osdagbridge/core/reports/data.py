@@ -69,7 +69,7 @@ def _structured_table_with_notes(rows, notes):
     return (r"\section{Plate Girder Design}\label{sec:plate-girder}" + "\n"
             r"These are supplied backend checks, with each member and load case kept separate. "
             r"Backend acceptance bands and statuses remain authoritative."
-            + "\n" + r"\begin{longtable}{|L{1.6cm}|L{3.5cm}|L{1.8cm}|L{1.8cm}|C{1.4cm}|C{2.0cm}|L{2.8cm}|L{2.2cm}|}"
+            + "\n" + r"\begin{longtable}{|L{1.8cm}|L{3.5cm}|L{1.8cm}|L{1.8cm}|C{1.4cm}|C{2.0cm}|L{2.8cm}|L{2.2cm}|}"
             + "\n" + r"\caption{Supplied Girder Design Checks}\hline"
             + "\n" + r"\textbf{Member} & \textbf{Check} & \textbf{Demand} & \textbf{Capacity} & \textbf{UR} & \textbf{Backend status} & \textbf{Source / load case} & \textbf{Reference} \\ \hline"
             + "\n" + "\n".join(rows) + "\n" + r"\end{longtable}"

@@ -330,7 +330,7 @@ def _girder_tables(input_dict, n_girders):
 \ReportTableGap
 
 \ReportTableGap
-\begin{longtable}{|L{1.4cm}|p{2.2cm}|p{2.2cm}|p{3.0cm}|p{2.4cm}|p{2.2cm}|}
+\begin{longtable}{|L{1.6cm}|p{2.2cm}|p{2.2cm}|p{3.0cm}|p{2.4cm}|p{2.2cm}|}
 \caption{\textbf{Girder Restraint and Stiffener Details}}\\
 \hline
 \textbf{Girder} & \textbf{Torsional / Warping Restraint} & \textbf{Web Philosophy} & \textbf{Inter\-mediate Stiffeners} & \textbf{Longi\-tudinal Stiffeners} & \textbf{Bearing Stiffener} \\[6pt]

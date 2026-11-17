@@ -254,7 +254,7 @@ def ch5_design_checks(checks_data, bridge, chart_paths=None) -> str:
     # Read from deck_rpt = output_dict["deck_report_values"] (common.KEY_DD_*).
     _dk_has = bool(deck_rpt)
     _dk_oh = bool(deck_rpt.get(KEY_DD_HAS_OVERHANG))
-    _DKPH = r"\placeholder{---}"
+    _DKPH = "N/A"
 
     def _dkv(key, default=0.0):
         """Legacy numeric fallback for reference expressions, never status checks."""
@@ -543,7 +543,7 @@ This section renders the design checks supplied for this report. Missing results
 \label{sec:deck-design}
 % ===========================
 
-The reinforced concrete deck slab is designed per IRC~112:2011 (flexure, shear, crack width) and IRC~22:2014 (composite construction). Wheel loads are distributed using Pigeaud's method. The deck is checked for flexure in the transverse and longitudinal directions, punching shear, one-way (beam) shear, crack width, and reinforcement detailing.
+Deck slab values are read from supplied backend results. The following template equations and references describe the reported checks; their applicable editions must be verified for the project.
 
 \vspace{1em}
 \begin{longtable}{|L{5.5cm}|p{10.0cm}|}

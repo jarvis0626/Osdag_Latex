@@ -147,7 +147,7 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
                                f'{ratio:.2f}' if ratio is not None else 'N/A', _tex(status))) + r' \\ \hline')
     if not rows:
         rows = [r'\multicolumn{5}{|c|}{N/A --- no named girder checks supplied} \\ \hline']
-    table1 = (r'\begin{longtable}{|L{1.5cm}|L{2.8cm}|L{6cm}|C{1.6cm}|C{2cm}|}' + '\n'
+    table1 = (r'\begin{longtable}{|L{1.8cm}|L{2.8cm}|L{6cm}|C{1.6cm}|C{2cm}|}' + '\n'
               + r'\caption{Reported Girder Summary}\hline' + '\n'
               + r'\textbf{Member} & \textbf{Member ID} & \textbf{Governing reported check} & \textbf{UR} & \textbf{Backend status} \\ \hline'
               + '\n' + '\n'.join(rows) + '\n' + r'\end{longtable}')
