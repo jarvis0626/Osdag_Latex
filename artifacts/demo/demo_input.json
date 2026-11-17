@@ -1,0 +1,509 @@
+{
+  "metadata": {
+    "project_name": "DEMONSTRATION ONLY - synthetic bridge results",
+    "project_location": "Sample location",
+    "designer": "Report rendering demonstration",
+    "client": "Not for construction",
+    "company": "OsdagBridge screening exercise",
+    "job_number": "DEMO-001",
+    "subtitle": "Synthetic data - no structural analysis",
+    "report_date": "2026-11-17"
+  },
+  "inputs": {
+    "geometry.span": 25,
+    "typical_section.no_of_girders": 4,
+    "typical_section.girder_spacing": 2.5,
+    "typical_section.overall_bridge_width": 10.5,
+    "typical_section.deck_thickness": 250,
+    "loading.live_load.irc.class_a": true,
+    "loading.live_load.irc.70r_tracked": true,
+    "loading.live_load.irc.70r_wheeled": false,
+    "loading.live_load.footpath_pressure.mode": "Custom",
+    "loading.live_load.footpath_pressure.value": 5,
+    "typical_section.lane_details.lane_table_count": 2,
+    "member_properties.girder_details.section_properties.area": 0.06,
+    "member_properties.girder_details.section_properties.mass": 471,
+    "member_properties.girder_details.select_girder.G1": "G1",
+    "member_properties.girder_details.member_id.G1.M1": "G1M1",
+    "member_properties.girder_details.select_girder.G2": "G2",
+    "member_properties.girder_details.member_id.G2.M1": "G2M1",
+    "member_properties.girder_details.select_girder.G3": "G3",
+    "member_properties.girder_details.member_id.G3.M1": "G3M1",
+    "member_properties.girder_details.select_girder.G4": "G4",
+    "member_properties.girder_details.member_id.G4.M1": "G4M1"
+  },
+  "outputs": {
+    "design_results": {
+      "per_girder": {
+        "G1": {
+          "checks": [
+            {
+              "name": "Flexure (synthetic)",
+              "check_id": 1,
+              "demand": 72.0,
+              "capacity": 100,
+              "dcr": 0.72,
+              "demand_unit": "kNm",
+              "capacity_unit": "kNm",
+              "status": "PASS"
+            }
+          ]
+        },
+        "G2": {
+          "checks": [
+            {
+              "name": "Flexure (synthetic)",
+              "check_id": 1,
+              "demand": 88.0,
+              "capacity": 100,
+              "dcr": 0.88,
+              "demand_unit": "kNm",
+              "capacity_unit": "kNm",
+              "status": "PASS"
+            }
+          ]
+        },
+        "G3": {
+          "checks": [
+            {
+              "name": "Flexure (synthetic)",
+              "check_id": 1,
+              "demand": 108.0,
+              "capacity": 100,
+              "dcr": 1.08,
+              "demand_unit": "kNm",
+              "capacity_unit": "kNm",
+              "status": "FAIL"
+            }
+          ]
+        },
+        "G4": {
+          "checks": [
+            {
+              "name": "Flexure (synthetic)",
+              "check_id": 1,
+              "demand": 93.0,
+              "capacity": 100,
+              "dcr": 0.93,
+              "demand_unit": "kNm",
+              "capacity_unit": "kNm",
+              "status": "PASS"
+            }
+          ]
+        }
+      }
+    },
+    "steeldesign.details.total_depth": 1500,
+    "steeldesign.details.moment.mu_applied": 2640,
+    "steeldesign.details.moment.md_capacity": 3000,
+    "util.flexure": 88,
+    "util.shear": 61,
+    "util.interaction": 90,
+    "util.ltb": 76,
+    "deck_report_values": {
+      "deck.report.m_uls_sag": 92,
+      "deck.report.mu_bot": 120,
+      "deck.report.shear_ved": 120,
+      "deck.report.shear_vrdc": 180
+    },
+    "analysis_summary": {
+      "load_cases": {
+        "Synthetic LC 01": {
+          "max_bm": 1820,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 251,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 02": {
+          "max_bm": 1840,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 252,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 03": {
+          "max_bm": 1860,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 253,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 04": {
+          "max_bm": 1880,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 254,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 05": {
+          "max_bm": 1900,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 255,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 06": {
+          "max_bm": 1920,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 256,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 07": {
+          "max_bm": 1940,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 257,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 08": {
+          "max_bm": 1960,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 258,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 09": {
+          "max_bm": 1980,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 259,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 10": {
+          "max_bm": 2000,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 260,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 11": {
+          "max_bm": 2020,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 261,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 12": {
+          "max_bm": 2040,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 262,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 13": {
+          "max_bm": 2060,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 263,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 14": {
+          "max_bm": 2080,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 264,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 15": {
+          "max_bm": 2100,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 265,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 16": {
+          "max_bm": 2120,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 266,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 17": {
+          "max_bm": 2140,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 267,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 18": {
+          "max_bm": 2160,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 268,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 19": {
+          "max_bm": 2180,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 269,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 20": {
+          "max_bm": 2200,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 270,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 21": {
+          "max_bm": 2220,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 271,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 22": {
+          "max_bm": 2240,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 272,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 23": {
+          "max_bm": 2260,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 273,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 24": {
+          "max_bm": 2280,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 274,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 25": {
+          "max_bm": 2300,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 275,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 26": {
+          "max_bm": 2320,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 276,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 27": {
+          "max_bm": 2340,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 277,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 28": {
+          "max_bm": 2360,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 278,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 29": {
+          "max_bm": 2380,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 279,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 30": {
+          "max_bm": 2400,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 280,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 31": {
+          "max_bm": 2420,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 281,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 32": {
+          "max_bm": 2440,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 282,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 33": {
+          "max_bm": 2460,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 283,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 34": {
+          "max_bm": 2480,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 284,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 35": {
+          "max_bm": 2500,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 285,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 36": {
+          "max_bm": 2520,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 286,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 37": {
+          "max_bm": 2540,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 287,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 38": {
+          "max_bm": 2560,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 288,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 39": {
+          "max_bm": 2580,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 289,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 40": {
+          "max_bm": 2600,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 290,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 41": {
+          "max_bm": 2620,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 291,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 42": {
+          "max_bm": 2640,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 292,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 43": {
+          "max_bm": 2660,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 293,
+          "sf_girder": "G1",
+          "sf_location": 0
+        },
+        "Synthetic LC 44": {
+          "max_bm": 2680,
+          "bm_girder": "G2",
+          "bm_location": 12.5,
+          "max_sf": 294,
+          "sf_girder": "G1",
+          "sf_location": 0
+        }
+      }
+    },
+    "design_log": [
+      "DEMONSTRATION ONLY. These are synthetic results; no structural analysis was executed."
+    ],
+    "crossbracing_forces_dict": {
+      "pairs": {
+        "G1-G2": {
+          "diag_compression_kN": 50,
+          "diag_compression_gov_lc": "Synthetic ULS"
+        }
+      }
+    },
+    "crossbracing_design_results": {
+      "G1-G2": {
+        "diagonal": {
+          "compression": {
+            "Design.Strength": 100,
+            "Optimum.UR": 0.5,
+            "Optimum.Designation": "ISA 75x75x8",
+            "Member.Slenderness": 120
+          }
+        }
+      }
+    },
+    "end_diaphragm_forces_dict": {
+      "pairs": {
+        "G1-G2": {
+          "diag_compression_kN": 115,
+          "diag_compression_gov_lc": "Synthetic ULS"
+        }
+      }
+    },
+    "end_diaphragm_design_results": {
+      "G1-G2": {
+        "diagonal": {
+          "compression": {
+            "Design.Strength": 100,
+            "Optimum.UR": 1.15,
+            "Optimum.Designation": "ISA 75x75x8",
+            "Member.Slenderness": 120
+          }
+        }
+      }
+    }
+  }
+}
