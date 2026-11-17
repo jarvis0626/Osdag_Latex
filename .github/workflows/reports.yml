@@ -1,0 +1,40 @@
+name: Report generation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  reports:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-report.txt
+      - run: python -m pip install -r requirements-report.txt "pytest>=8,<10" "pypdf>=5,<7" "PyMuPDF>=1.24,<2"
+      - run: python -m pytest -q
+      - run: python run_report.py --demo --no-pdf
+
+  real-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/setup_reports.py --with-compiler --dev
+      - run: .venv/bin/python -m pytest tests/reports/test_pdf_integration.py -q
+        env:
+          OSDAG_TEST_LATEX: ${{ github.workspace }}/.tools/tectonic
+      - run: .venv/bin/python run_report.py --demo

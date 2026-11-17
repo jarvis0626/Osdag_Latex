@@ -264,3 +264,12 @@ src/osdag_map_cache/
 temp_plot.html
 *.html
 tools/
+
+# Local report runtime and generated scratch output
+.tools/
+output/
+*.compile.log
+*.aux
+*.toc
+*.out
+*.synctex.gz
