@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "runtime": "Python 3.12 Linux container",
+  "image_id": "sha256:9f49a486dfa878095be292b46457c0108dce7e441c7612ca50722cb89a59fd87",
+  "pdf_pages": 36,
+  "pdf_sha256": "4574aa298c5236bd01023aec5502d48fd87759c5c7df3825998e624092839113",
+  "source_commit": "e9f464f23aff26c961ba53b62f29f139647647df"
+}

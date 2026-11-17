@@ -1,17 +1,6 @@
 {
   "date": "2026-11-17",
   "scope": "Reporting correctness and distribution audit; no full GUI bridge design or structural certification.",
-  "test_checkpoint": {
-    "source_commit": "f7bb7c9 plus follow-up styling and deployment changes",
-    "counts": {
-      "tests": 321,
-      "failures": 0,
-      "errors": 0,
-      "skipped": 1
-    },
-    "passed": 320,
-    "package_test": "Pending clean exported ZIP"
-  },
   "report_matrix": {
     "total": 33,
     "passed": 33,
@@ -32,8 +21,9 @@
     "coordinate_library": "PyMuPDF"
   },
   "docker": {
-    "build_and_pdf_generation": "passed",
-    "final_rebuild": "pending after evidence commit"
+    "passed": true,
+    "evidence": "docker_acceptance.json",
+    "pdf_pages": 36
   },
   "demonstration_pdfs": {
     "evidence": "../demo/validation.json",
@@ -44,5 +34,24 @@
     "Exact Winter task linkage and additional programme policies unverified.",
     "Missing backend forces and end-diaphragm mass remain unavailable.",
     "Upstream structural calculations and design adequacy are not certified by report tests."
-  ]
+  ],
+  "automated_tests": {
+    "source_commit": "e9f464f23aff26c961ba53b62f29f139647647df",
+    "counts": {
+      "tests": 321,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "passed": 321,
+    "real_compiler_pagination_enabled": true,
+    "exported_package_test_enabled": true
+  },
+  "exported_package": {
+    "passed": true,
+    "evidence": "package_acceptance.json",
+    "fresh_runtime_and_compiler_installed": true,
+    "pdf_pages": 36
+  },
+  "evidence_revision_note": "The verified source revision is recorded per check. Later documentation-only commits do not change the verified runtime. Published ZIP checksums belong to their corresponding source revision."
 }

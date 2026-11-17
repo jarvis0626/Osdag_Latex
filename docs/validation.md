@@ -4,7 +4,7 @@ The follow-up audit ran on 17 November 2026 with Windows and Python 3.12 in the 
 
 ## Executed checks
 
-The local suite currently records **320 passing tests**, including real Tectonic pagination, with the exported-package test gated until a ZIP is built. The final aggregate results and artifact hashes are recorded in `artifacts/audit/validation.json`; that manifest distinguishes the later distribution check from this checkpoint.
+The final local suite records **321 passing tests, zero failures and zero skips**, with both real Tectonic pagination and the exported-package check enabled. The source revision, aggregate results and artifact hashes are recorded in `artifacts/audit/validation.json`.
 
 The varied report matrix compiles **33 distinct synthetic report scenarios** into actual PDFs. It covers missing geometry, one/twelve girders, optional chapters, vehicle selections, custom text, Unicode and Greek/Celsius symbols, long metadata, partial and nonfinite results, unity/exceeded ratios, separate transverse components, material scales, 150 load cases and supplied image bytes. The summary is in `artifacts/audit/report_matrix.json`. These are reporting fixtures, not independent bridge analyses.
 
@@ -12,7 +12,7 @@ Four existing nonpersonal local PDFs, covering **17 pages**, passed read-only st
 
 The real pagination fixture preserves **100 unique rows over four pages**, repeats headings and member labels, and checks footer clearance using PyMuPDF coordinates. The measured minimum baseline gap is **43.56pt**, above the 18pt project regression threshold. This is a test policy, not an internship evaluation rubric.
 
-The Docker image was built and generated a real PDF in a Linux container. Source/package runtime checks also run from an unrelated directory with spaces and without the checkout on PYTHONPATH. The ZIP is allowlisted, has per-file hashes and normalizes text newlines for reproducible builds. The deployment instructions distinguish a source distribution from a bundled Python installation.
+The final Docker image was built and generated a 36-page PDF in a Linux container. The exported ZIP was extracted into an unrelated directory with spaces and without the checkout on PYTHONPATH. Running `start.py` installed a fresh local virtual environment and checksum-verified compiler, then generated a 36-page PDF successfully. All 45 bundled file hashes were verified. This uses the same computer and may reuse pip/TeX user caches; it is not a clean-machine or offline installation test. The ZIP is allowlisted and normalizes text newlines for reproducible builds. The deployment instructions distinguish a source distribution from a bundled Python installation.
 
 The updated synthetic before/after comparison was generated from the same fixture. The enhanced document is compiled with a successful exit, parsed, and visually reviewed at the title, member-check, chart and material-summary pages. Small text-box/fontconfig warnings remain; arbitrary genuine GUI content still requires visual review. The original baseline intentionally retains upstream LaTeX errors and uses continue-on-errors mode, as disclosed in `artifacts/demo/README.md`.
 

@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "source_commit": "e9f464f23aff26c961ba53b62f29f139647647df",
+  "archive_sha256": "83156c0cddd268d4302023f2582545cc09b04e6f5218cb9b7cccb676057872eb",
+  "manifest_files_verified": 45,
+  "unrelated_directory_with_spaces": true,
+  "original_checkout_on_pythonpath": false,
+  "fresh_runtime_and_compiler_installed": true,
+  "pdf_pages": 36,
+  "pdf_sha256": "7489c43f609f235f4dd7c42fd2953d15bcdedecabdd811c49ee97796a26e7764",
+  "seconds": 77.03,
+  "cache_scope": "Fresh extracted source, virtual environment and compiler; existing pip and user TeX resource caches may be reused."
+}
