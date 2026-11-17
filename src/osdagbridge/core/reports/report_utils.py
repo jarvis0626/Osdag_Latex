@@ -1,3 +1,6 @@
+import math
+import unicodedata
+
 from osdagbridge.core.utils.common import (
     KEY_MP_GD_MEMBER_ID,
     KEY_MP_GD_SELECT_GIRDER,
@@ -12,7 +15,7 @@ def _tex(value):
     Common engineering glyphs are normalized for pdfLaTeX; trusted report
     formulas must be passed separately, never through this plain-text function.
     """
-    text = '' if value is None else str(value)
+    text = unicodedata.normalize("NFC", '' if value is None else str(value))
     replacements = {
         "\\": r"\textbackslash{}", "&": r"\&", "%": r"\%",
         "$": r"\$", "#": r"\#", "{": r"\{", "}": r"\}",
@@ -24,6 +27,20 @@ def _tex(value):
         "\u201c": "``", "\u201d": "''", "\u2264": r"\ensuremath{\leq}",
         "\u2265": r"\ensuremath{\geq}", "\u00b0": r"\ensuremath{^\circ}",
     }
+    greek = {
+        0x03b1: "alpha", 0x03b2: "beta", 0x03b3: "gamma", 0x03b4: "delta",
+        0x03b5: "epsilon", 0x03b6: "zeta", 0x03b7: "eta", 0x03b8: "theta",
+        0x03b9: "iota", 0x03ba: "kappa", 0x03bb: "lambda", 0x03bc: "mu",
+        0x03bd: "nu", 0x03be: "xi", 0x03c0: "pi", 0x03c1: "rho",
+        0x03c2: "varsigma", 0x03c3: "sigma", 0x03c4: "tau", 0x03c5: "upsilon",
+        0x03c6: "phi", 0x03c7: "chi", 0x03c8: "psi", 0x03c9: "omega",
+        0x0393: "Gamma", 0x0394: "Delta", 0x0398: "Theta", 0x039b: "Lambda",
+        0x039e: "Xi", 0x03a0: "Pi", 0x03a3: "Sigma", 0x03a5: "Upsilon",
+        0x03a6: "Phi", 0x03a8: "Psi", 0x03a9: "Omega", 0x03d5: "varphi",
+    }
+    replacements.update({chr(code): "\\ensuremath{\\" + name + "}" for code, name in greek.items()})
+    replacements["\u00b5"] = r"\ensuremath{\mu}"
+    replacements["\u2103"] = r"\ensuremath{^\circ}C"
     return ''.join(replacements.get(character, character) for character in text)
 
 
@@ -50,8 +67,12 @@ def extract_result_summary(result):
 
 def _render_value(source_dict, key, unit=""):
     val = source_dict.get(key)
-    if val in ("", None):
-        return ""
+    if val is None or (isinstance(val, str) and not val.strip()):
+        return "N/A"
+    if isinstance(val, str) and val.strip().lower() in {"nan", "inf", "+inf", "-inf", "infinity", "+infinity", "-infinity", "n.a."}:
+        return "N/A"
+    if isinstance(val, (float, int)) and not isinstance(val, bool) and not math.isfinite(val):
+        return "N/A"
     return _tex(val) + unit
 
 
@@ -81,7 +102,13 @@ def get_girder_entries(input_dict):
     Returns:
         List[Tuple[str, str]]
     """
-    n = int(input_dict.get(KEY_TS_NO_OF_GIRDERS, 0))
+    try:
+        number = float(input_dict.get(KEY_TS_NO_OF_GIRDERS) or 0)
+        if not math.isfinite(number) or number < 0 or not number.is_integer():
+            return []
+        n = int(number)
+    except (TypeError, ValueError, OverflowError):
+        return []
 
     entries = []
 
@@ -107,13 +134,9 @@ def _fig_or_placeholder(path, caption, width=r'0.9\textwidth'):
                 r'\includegraphics[width=' + width + ']{' + p + '}\n'
                 r'\caption*{' + caption + '}\n'
                 r'\end{figure}')
-    return (r'\begin{figure}[H]' + '\n'
-            r'\centering' + '\n'
-            r'\fbox{\parbox{0.97\textwidth}{' + '\n'
-            r'\textit{[ PLACEHOLDER: ' + caption + r' ]}' + '\n'
-            r'}}' + '\n'
-            r'\caption*{' + caption + '}\n'
-            r'\end{figure}')
+    return (r'\noindent\textit{Unavailable: ' + _tex(caption)
+            + r'. No drawing was supplied.}\par' + '\n')
+
 
 def _fig_embed(path, caption, width=r'\textwidth', height=None):
     """Embed a real figure when path is provided (already copied); otherwise use an fbox placeholder."""
@@ -130,9 +153,5 @@ def _fig_embed(path, caption, width=r'\textwidth', height=None):
                 r'\caption*{\small ' + caption + '}\n'
                 r'\vspace{-0.5em}' + '\n'
                 r'\end{figure}')
-    # fbox placeholder — matches template exactly
-    return (r'\noindent\fbox{\parbox{0.97\textwidth}{' + '\n'
-            r'\textit{[ PLACEHOLDER: ' + caption + r' ]}' + '\n'
-            r'}}')
-
-
+    return (r'\noindent\textit{Unavailable: ' + _tex(caption)
+            + r'. No drawing was supplied.}\par' + '\n')

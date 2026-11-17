@@ -364,6 +364,14 @@ def format_chapter(text):
             raise ValueError("Unclosed report table")
         spec, columns = _fit_columns(text[match.end():end_spec - 1])
         body = _repeat_body_labels(_repeat_header(text[end_spec:table_end], columns))
+        # In a table body, empty cells represent unavailable data. Header cells
+        # can intentionally be blank, so keep the repeated heading untouched.
+        if r"\endhead" in body:
+            header, data = body.split(r"\endhead", 1)
+            data = re.sub(r"(?<!\\)&\s*(?=&|\\\\)", "& N/A ", data)
+            data = re.sub(r"(\\hline\s*)(?=&)", lambda match: match.group(1) + "N/A ", data)
+            data = re.sub(r"(?<!\\)&\s*---\s*(?=&|\\\\)", "& N/A ", data)
+            body = header + r"\endhead" + data
         result.append(text[cursor:match.start()])
         result.append("\\begingroup\n\\ReportTableSetup\n\\ReportTableFont\n\\begin{longtable}{" + spec + "}" + body + "\\end{longtable}\n\\endgroup")
         cursor = table_end + len(ending)

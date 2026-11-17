@@ -79,7 +79,12 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
 
     # Reuse the same finite, capacity-validated ratios shown in Section 5.5.
     # Missing results must not become a fabricated passing design outcome.
-    from .charts import utilization_series
+    from .charts import utilization_series, conflicting_check_ratio
+    from .data import supplied_girder_checks
+    backend_records = list(supplied_girder_checks(output_dict))
+    backend_failures = [record for record in backend_records if str(record[2].get("status", "")).upper() == "FAIL"]
+    backend_warnings = [record for record in backend_records if str(record[2].get("status", "")).upper() == "WARN"]
+    conflicts = [record for record in backend_records if conflicting_check_ratio(record[2])]
     component_series = utilization_series(input_dict, output_dict)
     component_urs = []
     outcomes = []
@@ -94,12 +99,20 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
             outcomes.append(_tex(f'{label}: {status}; maximum UR {maximum:.2f}'))
         else:
             outcomes.append(_tex(f'{label}: No valid demand/capacity results'))
-    if any(value > 1 for value, _ in component_urs):
+    if conflicts:
+        overall_design_status = 'Inconsistent supplied ratios - review backend results'
+    elif any(value > 1 for value, _ in component_urs):
         overall_design_status = 'Exceeds UR limit'
+    elif backend_failures:
+        overall_design_status = 'Backend reports FAIL - review the supplied checks'
     elif incomplete:
         overall_design_status = 'Incomplete results - review unavailable checks'
     else:
         overall_design_status = 'Within UR limit (reported checks only)'
+    if backend_warnings:
+        outcomes.append(_tex('Backend WARN statuses are present; review the detailed checks.'))
+    if backend_failures:
+        outcomes.append(_tex('Backend FAIL statuses are present; a numeric chart limit does not override them.'))
     if component_urs:
         max_ur, max_label = max(component_urs, key=lambda item: item[0])
         overall_utilization_ratio = f'{max_ur:.2f} ({max_label})'
@@ -112,53 +125,33 @@ def executive_summary(input_dict, output_dict, fig_paths) -> str:
     gov = _tex(gov_name) if gov_name not in (None, '', 'None') else ''
     ur = _tex(overall_utilization_ratio) if overall_utilization_ratio else ''
 
-    # --- Dynamic Table 1: fetch backend-populated labels via exact suffix pattern ---
-    # defaults.py populates: KEY_MP_GD_SELECT_GIRDER + '.G{i}' = 'G{i}'
-    #                        KEY_MP_GD_MEMBER_ID     + '.G{i}.M1' = 'G{i}M1'
-    labels = get_girder_entries(input_dict)
-    if not labels:
-        labels = [("", "")]
-    n_cols = len(labels)
-
-    # Column widths: row-label column fixed at 2.8cm; girder columns share remainder
-    label_col_cm = 2.8
-    # Available width ≈ 15.0cm for A4 with 1in margins; each girder col gets equal share
-    girder_col_cm = round(max(1.5, (15.0 - label_col_cm) / n_cols), 1)
-    col_spec = '|C{' + str(label_col_cm) + 'cm}|' + '|'.join(['C{' + str(girder_col_cm) + 'cm}'] * n_cols) + '|'
-
-    # Header row
-    hdr_cells = ' &\n  '.join([r'\textbf{' + _tex(lbl) + '}' for lbl, _ in labels])
-    header_row = r'  \textbf{} &' + '\n  ' + hdr_cells + r' \\' + '\n'
-
-    # Member ID row
-    mid_cells = ' & '.join([_tex(mid) for _, mid in labels])
-    member_id_row = 'Member ID & ' + mid_cells + r' \\' + '\n'
-
-    # Section / Governing Check / UR rows
-    sec_cells = ' & '.join([sec] * n_cols)
-    sections = f"Section Designation & {sec_cells} \\\\"
-    gov_cells = ' & '.join([gov] * n_cols)
-    gov_checks = f"Governing Check & {gov_cells} \\\\"
+    # A row per member remains readable for wide bridges and never copies a
+    # global controlling-girder utilization into every member column.
+    from .data import check_ratio
+    labels = [(str(label), str(member_id)) for label, member_id in get_girder_entries(input_dict) if label]
+    known = {label for label, _ in labels}
+    labels.extend((str(label), 'N/A') for label in per_girder if str(label) not in known and not str(label).startswith('EB'))
+    rows = []
     girder_series = component_series.get('Steel plate girders', {})
-    ur_cells = ' & '.join(_tex(f'{girder_series[lbl]:.2f}') if girder_series.get(lbl) is not None else 'N/A' for lbl, _ in labels)
-    urs = f"Utilization Ratio & {ur_cells} \\\\"
-
-    table1 = (r'\noindent\textbf{Table 1 -- Final Bridge Geometry (after optimization)}' + '\n\n'
-              r'\ReportTableGap' + '\n'
-              r'\noindent' + '\n'
-              r'\begin{tabular}{' + col_spec + '}\n'
-              r'\hline' + '\n'
-              + header_row +
-              r'\hline' + '\n'
-              + member_id_row +
-              r'\hline' + '\n'
-              + sections + '\n'
-              r'\hline' + '\n'
-              + gov_checks + '\n'
-              r'\hline' + '\n'
-              + urs + '\n'
-              r'\hline' + '\n'
-              r'\end{tabular}')
+    for label, member_id in labels:
+        records = [record[2] for record in backend_records if record[0] == label]
+        valid = [record for record in records if check_ratio(record) is not None]
+        controlling = max(valid, key=check_ratio) if valid else {}
+        flags = {str(record.get('status') or '').upper() for record in records}
+        status = next((flag for flag in ('FAIL', 'WARN', 'PASS', 'INFO') if flag in flags), 'N/A')
+        ratio = girder_series.get(label)
+        if ratio is None and status in {'PASS', 'WARN'}:
+            status = 'N/A'
+        rows.append(' & '.join((_tex(label), _tex(member_id or 'N/A'),
+                               _tex(controlling.get('name') or 'N/A'),
+                               f'{ratio:.2f}' if ratio is not None else 'N/A', _tex(status))) + r' \\ \hline')
+    if not rows:
+        rows = [r'\multicolumn{5}{|c|}{N/A --- no named girder checks supplied} \\ \hline']
+    table1 = (r'\begin{longtable}{|L{1.5cm}|L{2.8cm}|L{6cm}|C{1.6cm}|C{2cm}|}' + '\n'
+              + r'\caption{Reported Girder Summary}\hline' + '\n'
+              + r'\textbf{Member} & \textbf{Member ID} & \textbf{Governing reported check} & \textbf{UR} & \textbf{Backend status} \\ \hline'
+              + '\n' + '\n'.join(rows) + '\n' + r'\end{longtable}')
+    table1 += '\n' + r'\textit{Controlling-girder section designation (legacy reference): ' + (sec or 'N/A') + r'.}'
 
     return r"""
 \newpage
@@ -200,7 +193,7 @@ This section provides a concise summary of the bridge design, key inputs, govern
 
 """ + plan_fig + r"""
 
-\newpage
+\ReportTableGap
 
 """ + cs_fig + '\n\n' + geom_fig + '\n\n' + table1 + r"""
 

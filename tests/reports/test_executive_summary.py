@@ -21,4 +21,5 @@ def test_missing_components_are_incomplete_instead_of_pass():
 def test_girder_columns_show_individual_utilization():
     data = demonstration_data()
     source = executive_summary(data["inputs"], data["outputs"], {})
-    assert "Utilization Ratio & 0.72 & 0.88 & 1.08 & 0.93" in source
+    assert "G1 & G1M1 & Flexure (synthetic) & 0.72 & PASS" in source
+    assert "G3 & G3M1 & Flexure (synthetic) & 1.08 & FAIL" in source

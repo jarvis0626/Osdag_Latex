@@ -108,6 +108,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 import copy
 import re
+import math
 from typing import Optional, List, Literal
 
 from osdagbridge.core.utils.common import (
@@ -313,6 +314,7 @@ class ReportPayload:
     log_entries:      List[str] = field(default_factory=list)
     output_dict:      dict = field(default_factory=dict)
     figure_data:      dict = field(default_factory=dict)  # {attr: bytes} — cleared after writing to tmpdir
+    error: Optional[str] = None
 
 
 @dataclass
@@ -465,6 +467,8 @@ class ReportDataBridge:
             val = self._cb_osdag(pair, member, force_type).get("efficiency")
             if val is not None:
                 ur = float(val)
+                if not math.isfinite(ur) or ur < 0:
+                    return "N/A"
                 if ur <= 1.0:
                     return r"\textcolor{black}{PASS}"
                 return r"\textcolor{red}{FAIL}"
@@ -555,10 +559,95 @@ def _format_project_location(pl_data):
 # Public builder helper (unchanged signature)
 # ---------------------------------------------------------------------------
 
-def build_report_payload(request, input_dict, output_dict):
-    input_dict = copy.deepcopy(input_dict)
-    output_dict = copy.deepcopy(output_dict or {})
+def validate_report_data(input_dict, output_dict):
+    """Validate container structure before rendering; do not alter results."""
+    def mapping(value, path):
+        if not isinstance(value, dict):
+            raise ValueError(f"{path} must be an object, not {type(value).__name__}.")
+        return value
+
+    def optional_mapping(value, path):
+        return mapping({} if value is None else value, path)
+
+    def records(value, path):
+        if not isinstance(value, list):
+            raise ValueError(f"{path} must be a list of objects.")
+        for index, record in enumerate(value):
+            mapping(record, f"{path}[{index}]")
+
+    mapping(input_dict, "inputs")
+    mapping(output_dict, "outputs")
+    from osdagbridge.core.utils.common import KEY_TS_NO_OF_GIRDERS
+    for key in (KEY_SPAN, KEY_TS_NO_OF_GIRDERS):
+        value = input_dict.get(key)
+        if value is None or value == "":
+            continue
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise ValueError(f"inputs.{key} must be a finite nonnegative number.") from exc
+        if isinstance(value, bool) or not math.isfinite(numeric) or numeric < 0:
+            raise ValueError(f"inputs.{key} must be a finite nonnegative number.")
+        if key == KEY_TS_NO_OF_GIRDERS and not numeric.is_integer():
+            raise ValueError(f"inputs.{key} must be a whole number.")
+    summary = optional_mapping(output_dict.get("analysis_summary"), "outputs.analysis_summary")
+    for key in ("load_cases", "reactions"):
+        for name, row in optional_mapping(summary.get(key), f"outputs.analysis_summary.{key}").items():
+            mapping(row, f"outputs.analysis_summary.{key}.{name}")
+    for key in ("deck_report_values", "deck_design_results"):
+        if key in output_dict and output_dict[key] is not None:
+            mapping(output_dict[key], f"outputs.{key}")
+    design = optional_mapping(output_dict.get("design_results"), "outputs.design_results")
+    for name, girder in optional_mapping(design.get("per_girder"), "outputs.design_results.per_girder").items():
+        path = f"outputs.design_results.per_girder.{name}"
+        mapping(girder, path)
+        records([] if girder.get("checks") is None else girder["checks"], path + ".checks")
+        for load_case, values in optional_mapping(girder.get("per_lc"), path + ".per_lc").items():
+            mapping(values, path + ".per_lc." + str(load_case))
+            records([] if values.get("checks") is None else values["checks"], path + ".per_lc." + str(load_case) + ".checks")
+    for prefix in ("crossbracing", "end_diaphragm"):
+        for suffix in ("_design_results", "_forces_dict"):
+            key = prefix + suffix
+            if key in output_dict and output_dict[key] is not None:
+                mapping(output_dict[key], f"outputs.{key}")
+    if "design_checks" in output_dict and output_dict["design_checks"] is not None:
+        if not isinstance(output_dict["design_checks"], list):
+            raise ValueError("outputs.design_checks must be a list.")
+    if "design_log" in output_dict and output_dict["design_log"] is not None:
+        entries = output_dict["design_log"]
+        if not isinstance(entries, list) or any(not isinstance(item, str) for item in entries):
+            raise ValueError("outputs.design_log must be a list of text entries.")
+
+
+def validate_report_stem(stem):
+    """Use a portable basename that is safe for both LaTeX and Windows."""
+    if (not isinstance(stem, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", stem)
+            or ".." in stem or stem.endswith(".") or len(stem) > 120):
+        raise ValueError("Report filename must use 1 to 120 letters, digits, underscores, dots or hyphens, without parent-directory components or a trailing dot.")
+    device = stem.split(".", 1)[0].upper()
+    if device in {"CON", "PRN", "AUX", "NUL"} or re.fullmatch(r"(?:COM|LPT)[1-9]", device):
+        raise ValueError("Report filename is a reserved Windows device name. Choose another name.")
+
+
+def _atomic_copy(source, destination):
+    """Replace a published file only after its complete replacement is copied."""
+    destination = Path(destination)
+    descriptor, temporary = tempfile.mkstemp(prefix="." + destination.name + ".", dir=destination.parent)
+    os.close(descriptor)
+    temporary = Path(temporary)
     try:
+        shutil.copy2(source, temporary)
+        os.replace(temporary, destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def build_report_payload(request, input_dict, output_dict):
+    try:
+        output_dict = {} if output_dict is None else output_dict
+        validate_report_data(input_dict, output_dict)
+        input_dict = copy.deepcopy(input_dict)
+        output_dict = copy.deepcopy(output_dict)
         rd  = request.metadata.report_date or datetime.date.today().isoformat()
         lp  = request.metadata.logo_path
         raw_pl = request.metadata.project_location or input_dict.get('project.location') or ''
@@ -673,7 +762,7 @@ def build_report_payload(request, input_dict, output_dict):
             metadata=request.metadata, options=request.options,
             inputs={}, analysis_summary={}, design_checks=[],
             figures=ReportFigures(), log_entries=[],
-            output_dict={})
+            output_dict={}, error=f"Invalid report data: {exc}")
 
 
 # ---------------------------------------------------------------------------
@@ -715,9 +804,12 @@ def generate_report(payload, request, *, compiler=None):
     snapshot so a report cannot alter analysis inputs or consume figure bytes.
     """
     tex_path = None
+    source_written = False
     try:
-        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", request.file_stem) or ".." in request.file_stem:
-            raise ValueError("Report filename must use letters, digits, underscores, dots or hyphens, without parent-directory components.")
+        validate_report_stem(request.file_stem)
+        if payload.error:
+            raise ValueError(payload.error)
+        validate_report_data(payload.inputs, payload.output_dict)
         output_dir = Path(request.output_dir).expanduser().resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
         stem = request.file_stem
@@ -754,6 +846,8 @@ def generate_report(payload, request, *, compiler=None):
                 else:
                     logo_paths.append(None)
             quantities = calculate_material_quantities(payload.inputs, payload.output_dict)
+            quantities = {key: "N/A" if value == "N.A." or (isinstance(value, str) and "\\placeholder" in value) else value
+                          for key, value in quantities.items()}
             payload.inputs.update(quantities)
             chart_paths = {}
             if payload.options.include_figures:
@@ -773,26 +867,27 @@ def generate_report(payload, request, *, compiler=None):
                           ch2_input_parameters(payload.metadata, payload.inputs, payload.output_dict)])
             sections = payload.options.sections
             if 'loads' in sections:
-                parts.append(ch3_loads(payload.inputs))
+                parts.append(r"\setcounter{chapter}{2}" + ch3_loads(payload.inputs, payload.output_dict))
             if 'analysis' in sections:
-                parts.append(ch4_analysis(payload.analysis_summary, fig_paths, bridge, span_m))
+                parts.append(r"\setcounter{chapter}{3}" + ch4_analysis(payload.analysis_summary, fig_paths, bridge, span_m))
             if 'design_checks' in sections:
-                parts.append(ch5_design_checks(payload.design_checks, bridge, chart_paths=chart_paths))
+                parts.append(r"\setcounter{chapter}{4}" + ch5_design_checks(payload.design_checks, bridge, chart_paths=chart_paths))
             if 'drawings' in sections and payload.options.include_figures:
-                parts.append(ch6_drawings(fig_paths))
-            parts.extend([ch7_quantities(payload.inputs, chart_paths=chart_paths),
-                          ch8_design_log(payload.log_entries, payload.inputs), references(),
+                parts.append(r"\setcounter{chapter}{5}" + ch6_drawings(fig_paths))
+            parts.extend([r"\setcounter{chapter}{6}" + ch7_quantities(payload.inputs, chart_paths=chart_paths),
+                          r"\setcounter{chapter}{7}" + ch8_design_log(payload.log_entries, payload.inputs), references(),
                           r"\end{document}"])
             source = temporary / (stem + '.tex')
             source.write_text('\n'.join(parts), encoding='utf-8')
             # Source/assets survive compilation failures and can be rebuilt later.
-            shutil.copy2(source, tex_path)
             shutil.copytree(assets, output_dir / asset_name, dirs_exist_ok=True)
+            _atomic_copy(source, tex_path)
+            source_written = True
             if not payload.options.include_pdf:
                 return ReportResult(pdf_path=None, tex_path=str(tex_path))
             try:
                 compiled_pdf = compile_latex(source, executable=compiler)
-                shutil.copy2(compiled_pdf, pdf_path)
+                _atomic_copy(compiled_pdf, pdf_path)
             finally:
                 for suffix in ('.compile.log', '.log'):
                     diagnostic = source.with_suffix(suffix)
@@ -802,5 +897,5 @@ def generate_report(payload, request, *, compiler=None):
         return ReportResult(pdf_path=str(pdf_path), tex_path=str(tex_path))
     except Exception as exc:
         logger.error("Report generation failed: %s", exc)
-        existing_source = str(tex_path) if tex_path and tex_path.is_file() else None
+        existing_source = str(tex_path) if source_written and tex_path and tex_path.is_file() else None
         return ReportResult(pdf_path=None, tex_path=existing_source, error=str(exc))

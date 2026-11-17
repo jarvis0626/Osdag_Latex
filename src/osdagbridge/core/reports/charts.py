@@ -35,6 +35,31 @@ def demand_capacity_ratio(demand, capacity) -> float | None:
     return nonnegative_number(demand / capacity)
 
 
+def conflicting_check_ratio(check):
+    """Detect conflicts beyond the backend's two/four-decimal rounding.
+
+    DCREngine._add_check rounds demand/capacity to two decimals and DCR to
+    four. Compare an interval, rather than treating normal rounding as a defect.
+    This checks supplied data consistency; it does not redesign a member.
+    """
+    demand = nonnegative_number(check.get("demand"))
+    capacity = nonnegative_number(check.get("capacity"))
+    supplied = nonnegative_number(check.get("dcr"))
+    if demand is None or capacity is None or capacity <= 0 or supplied is None:
+        return False
+    lower = max(0.0, demand - 0.005) / (capacity + 0.005)
+    upper = (demand + 0.005) / (capacity - 0.005) if capacity > 0.005 else math.inf
+    return not lower - 0.000051 <= supplied <= upper + 0.000051
+
+
+def reported_check_ratio(check):
+    ratio = demand_capacity_ratio(check.get("demand"), check.get("capacity"))
+    if ratio is None or conflicting_check_ratio(check):
+        return None
+    supplied = nonnegative_number(check.get("dcr"))
+    return supplied if supplied is not None else ratio
+
+
 def _mapping(value) -> Mapping:
     return value if isinstance(value, Mapping) else {}
 
@@ -115,12 +140,7 @@ def utilization_series(inputs: Mapping, outputs: Mapping) -> dict[str, dict[str,
         ratios = []
         for check in checks:
             check = _mapping(check)
-            ratio = demand_capacity_ratio(check.get("demand"), check.get("capacity"))
-            # Preserve the engine's unrounded ratio when available, but only
-            # after checking demand/capacity (zero capacity uses sentinel 999).
-            if ratio is not None:
-                reported = nonnegative_number(check.get("dcr"))
-                ratio = reported if reported is not None else ratio
+            ratio = reported_check_ratio(check)
             ratios.append(ratio)
         girder_values[str(girder)] = _worst(ratios)
     if not girder_values:

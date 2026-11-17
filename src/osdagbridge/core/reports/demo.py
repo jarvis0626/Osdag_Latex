@@ -1,6 +1,12 @@
 """Deterministic synthetic inputs for exercising rendering, never bridge design."""
 
 from osdagbridge.core.utils import common as keys
+from osdagbridge.core.utils.codes.keyfile import DCR_FAIL_THRESHOLD, DCR_PASS_THRESHOLD
+
+
+def demonstration_status(ratio):
+    """Make synthetic status flags follow the backend's published thresholds."""
+    return "FAIL" if ratio >= DCR_FAIL_THRESHOLD else "WARN" if ratio >= DCR_PASS_THRESHOLD else "PASS"
 
 
 def demonstration_data():
@@ -30,7 +36,7 @@ def demonstration_data():
                     {"name": "Flexure (synthetic)", "check_id": 1,
                      "demand": ratio * 100, "capacity": 100, "dcr": ratio,
                      "demand_unit": "kNm", "capacity_unit": "kNm",
-                     "status": "PASS" if ratio <= 1 else "FAIL"},
+                     "status": demonstration_status(ratio)},
                 ]}
                 for i, ratio in enumerate((0.72, 0.88, 1.08, 0.93), start=1)
             },

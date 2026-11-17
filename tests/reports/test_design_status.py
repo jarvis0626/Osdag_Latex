@@ -30,7 +30,14 @@ def _table(report, caption):
 
 
 def _statuses(table):
-    return re.findall(r"& (PASS|FAIL|N/A) \\", table)
+    # Read actual check rows. Descriptive metric rows also use N/A now; their
+    # final cells are not independent engineering status decisions.
+    values = []
+    labels = ("Check", "Moment Capacity,", "Required Area", "Min.\\ Reinforcement", "Max.\\ Bar Spacing", "Clear Cover")
+    for line in table.splitlines():
+        if any(label in line for label in labels):
+            values.extend(re.findall(r"& (PASS|FAIL|N/A) \\", line))
+    return values
 
 
 @pytest.mark.parametrize("demand,capacity,expected", [
@@ -108,8 +115,6 @@ def test_missing_or_zero_girder_snapshot_renders_unavailable_rows_without_assumi
     report = _render_deck({}, inputs=inputs)
     assert "PASS" not in report
     assert r"\makecell{G1}" not in report
-    for caption in ("Girder Section Properties", "Moment Capacity Check", "Stiffener Design Summary", "Girder Design Summary"):
-        assert "N/A --- no girder result entries supplied" in _table(report, caption)
-    stiffener = _table(report, "Stiffener Design Summary")
-    assert r"\textbf{Girder} & \textbf{Parameter} & \textbf{Value}" in stiffener
-    assert r"\endhead" in stiffener
+    unavailable = _table(report, "Supplied Girder Design Checks")
+    assert "N/A --- no structured girder checks supplied" in unavailable
+    assert r"\endhead" in unavailable

@@ -1,4 +1,5 @@
 from .styles import styled_chapter
+from .report_utils import _tex
 
 @styled_chapter
 def ch6_drawings(fig_paths):
@@ -37,14 +38,8 @@ def ch6_drawings(fig_paths):
                     + label_tex
                     + r'\end{figure}' + '\n'
                     )
-        return (r'\begin{figure}[H]' + '\n'
-                r'\centering' + '\n'
-                r'\fbox{\parbox{0.97\textwidth}{' + '\n'
-                r'\textit{[ PLACEHOLDER: ' + ' ' + title + r' ]}' + '\n'
-                r'}}' + '\n'
-                r'\caption{' + title + '}\n'
-                + label_tex
-                + r'\end{figure}' + '\n')
+        return (r'\noindent\textit{Unavailable: ' + _tex(title)
+                + r'. No drawing was supplied.}\par' + '\n')
 
     sup3d  = _sec_fig(fig_paths.get('final_geometry'),   'Overall 3D Bridge Superstructure',   'fig:bridge-3d')
     cs     = _sec_fig(fig_paths.get('cross_section'),     'Typical Cross Section',              'fig:cross-section')
@@ -61,7 +56,7 @@ def ch6_drawings(fig_paths):
             p = path.replace('\\', '/')
             body = r'\includegraphics[width=\linewidth]{' + p + '}'
         else:
-            body = r'\fbox{\parbox{0.95\linewidth}{\centering\textit{[ ' + title + r' ]}}}'
+            return (r'\begin{minipage}[t]{0.31\textwidth}\textit{Unavailable: ' + _tex(title) + r'.}\end{minipage}')
         return (r'\begin{minipage}[t]{0.31\textwidth}' + '\n'
                 r'\centering' + '\n'
                 + body + '\n'

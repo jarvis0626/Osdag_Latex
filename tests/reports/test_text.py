@@ -23,4 +23,4 @@ def test_tex_escapes_original_characters_once(value, expected):
 def test_render_value_keeps_trusted_units_outside_plain_text_escaping():
     assert _render_value({"load": "5 & 6"}, "load", r" kN/m\textsuperscript{2}") == r"5 \& 6 kN/m\textsuperscript{2}"
     assert _render_value({"load": 0}, "load", " kN") == "0 kN"
-    assert _render_value({}, "load", " kN") == ""
+    assert _render_value({}, "load", " kN") == "N/A"

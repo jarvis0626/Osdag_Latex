@@ -5,6 +5,8 @@
 
 from osdagbridge.core.utils.common import (
     KEY_CB_LOAD,
+    KEY_DD_IMPACT_FACTOR,
+    KEY_DD_VEHICLE,
     KEY_FOOTPATH,
     KEY_LL_CUSTOM_VEHICLES,
     KEY_LL_ECCENTRICITY,
@@ -47,6 +49,7 @@ from osdagbridge.core.utils.common import (
 
 from osdagbridge.core.reports.report_utils import _tex, _render_value
 from .styles import styled_chapter
+from .charts import nonnegative_number
 
 
 def _selected(value):
@@ -71,7 +74,7 @@ def _load_table(caption, rows):
 
 
 @styled_chapter
-def ch3_loads(input_dict):
+def ch3_loads(input_dict, output_dict=None):
     # Live load vehicle names mapping
     vehicles = []
     if _selected(input_dict.get(KEY_LL_IRC_CLASS_A)):
@@ -121,8 +124,10 @@ def ch3_loads(input_dict):
                 _selected(input_dict.get(KEY_LL_IRC_AA_TRACKED))
             )
             if is_wheeled_heavy or is_tracked_heavy:
-                im_aa = IRC6_2017.cl_208_3_impact_factor(span_m)
-                factors.append(f"Class AA/70R: {1.0 + im_aa:.3f}")
+                # The legacy helper reads KEY_VEHICLE module defaults rather
+                # than this UI selection. Do not label its default as a
+                # vehicle-specific result from the completed design.
+                factors.append("Class AA/70R: N/A (vehicle-specific result not supplied)")
             
             if factors:
                 impact_factor_str = ", ".join(factors)
@@ -161,9 +166,14 @@ def ch3_loads(input_dict):
     else:
         fp_str = "N/A"
 
+    deck_values = (output_dict or {}).get("deck_report_values") or {}
+    backend_multiplier = nonnegative_number(deck_values.get(KEY_DD_IMPACT_FACTOR))
+    backend_impact = (str(deck_values.get(KEY_DD_VEHICLE) or "Governing backend vehicle")
+                      + f": {backend_multiplier:.3f}") if backend_multiplier is not None and backend_multiplier >= 1 else "N/A"
     vehicle_table = _load_table("Vehicular Live Loads (LL)", [
         ("Vehicles Considered", vehicles_str, "--"),
-        ("Impact Multiplier, 1 + IM (IRC 6)", impact_factor_str, "--"),
+        ("Governing Impact Multiplier (backend)", backend_impact, "--"),
+        ("Impact Multiplier (report helper evaluation)", impact_factor_str, "--"),
         ("Braking Load (IRC 6)", braking_force_str, "kN"),
         ("Braking Load Eccentricity above Deck", input_dict.get(KEY_LL_ECCENTRICITY, "N/A"), "m"),
         ("Centrifugal Load", "Not available from backend", "kN"),

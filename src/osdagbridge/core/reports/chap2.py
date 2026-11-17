@@ -91,12 +91,12 @@ def ch2_input_parameters(m, input_dict, output_dict=None):
 \ReportCaptionSetup
 
 
-This section documents all inputs provided to OsdagBridge. User-provided inputs are clearly distinguished from software-assumed defaults. Where the user did not supply a value, the software has applied the IRC/IS code default or an empirical guideline; these are annotated with an asterisk (\sdstar{}).
+This section reproduces the supplied input snapshot. N/A identifies an unavailable value; the report does not invent a replacement. An asterisk (\sdstar{}) identifies a software default where the upstream template explicitly marks it.
 
 \section{Basic Inputs (User-Defined)}
 \label{sec:basic-inputs}
 
-\noindent\textit{Note: These inputs are mandatory and were provided by the user.}
+\noindent\textit{Input availability: these fields are read from the supplied snapshot; N/A identifies an unavailable input.}
 
 \begin{table}[H]
 \caption{\textbf{Project Location}}
@@ -226,13 +226,10 @@ def _girder_tables(input_dict, n_girders):
     # KEY_MP_GD_SELECT_GIRDER.G{i}    = 'G{i}'
     # KEY_MP_GD_MEMBER_ID.G{i}.M1     = 'G{i}M1'
     # All other girder/stiffener keys: {BASE_KEY}.G{i}.M1
-    n = n_girders if n_girders >= 1 else 1
     girder_entries = get_girder_entries(input_dict)
-    if not girder_entries:
-        girder_entries = [(f"Girder {i}", f"M1") for i in range(1, n + 1)]
     
     entries_for_table = [
-        (lbl, mid, i)
+        (_tex(lbl), _tex(mid), i)
         for i, (lbl, mid) in enumerate(
             girder_entries,
             start=1,
@@ -298,6 +295,9 @@ def _girder_tables(input_dict, n_girders):
     gen_rows = "".join([_gen_row(g_lbl, m_id, i) for g_lbl, m_id, i in entries_for_table])
     dim_rows = "".join([_dim_row(g_lbl, i) for g_lbl, _, i in entries_for_table])
     rst_rows = "".join([_rst_row(g_lbl, i) for g_lbl, _, i in entries_for_table])
+    if not entries_for_table:
+        gen_rows = dim_rows = r"N/A & N/A & N/A & N/A & N/A \\ \hline"
+        rst_rows = r"N/A & N/A & N/A & N/A & N/A & N/A \\ \hline"
 
     return (r"""
 \newpage
@@ -333,7 +333,7 @@ def _girder_tables(input_dict, n_girders):
 \begin{longtable}{|L{1.4cm}|p{2.2cm}|p{2.2cm}|p{3.0cm}|p{2.4cm}|p{2.2cm}|}
 \caption{\textbf{Girder Restraint and Stiffener Details}}\\
 \hline
-\textbf{Girder} & \textbf{Torsional / Warping Restraint} & \textbf{Web Philosophy} & \textbf{Inter\-mediate Stiffeners} & \textbf{Longitudinal Stiffeners} & \textbf{Bearing Stiffener} \\[6pt]
+\textbf{Girder} & \textbf{Torsional / Warping Restraint} & \textbf{Web Philosophy} & \textbf{Inter\-mediate Stiffeners} & \textbf{Longi\-tudinal Stiffeners} & \textbf{Bearing Stiffener} \\[6pt]
 \hline
 \endfirsthead
 \endhead
