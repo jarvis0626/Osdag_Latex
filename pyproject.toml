@@ -54,8 +54,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+reports = [
+  "matplotlib>=3.5",
+  "pylatex>=1.4.2",
+]
+
 test = [
   "pytest>=6.2.2",
+  "pypdf>=5,<7",
+  "PyMuPDF>=1.24,<2",
 ]
 
 dev = [
@@ -80,7 +87,12 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
 # Entry points
 [project.scripts]
+osdagbridge-report = "osdagbridge.core.reports.__main__:main"
 osdagbridge-cli = "osdagbridge.cli.__main__:main"
 osdagbridge = "osdagbridge.desktop.__main__:main"
