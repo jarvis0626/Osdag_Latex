@@ -75,6 +75,29 @@ def test_custom_vehicle_names_are_escaped_and_inputs_are_not_mutated():
     assert inputs == original
 
 
+@pytest.mark.parametrize("included", [False, "False", "false", "No", "0", 0, None, ""])
+def test_unchecked_custom_ui_vehicles_do_not_appear_in_report(included):
+    inputs = {KEY_LL_CUSTOM_VEHICLES: [
+        {"name": "Excluded truck", "included": included},
+        {"name": "Selected truck", "included": True},
+        {"name": "Legacy record"}, "Legacy text vehicle",
+    ]}
+    original = deepcopy(inputs)
+    vehicle = _table(ch3_loads(inputs), "Vehicular Live Loads (LL)")
+    assert "Excluded truck" not in vehicle
+    assert "Selected truck" in vehicle
+    assert "Legacy record" in vehicle and "Legacy text vehicle" in vehicle
+    assert inputs == original
+
+
+@pytest.mark.parametrize("included", [True, "True", " yes ", "checked", "1", 1])
+def test_checked_custom_ui_vehicles_are_reported(included):
+    vehicle = _table(ch3_loads({KEY_LL_CUSTOM_VEHICLES: [
+        {"name": "Selected truck", "included": included},
+    ]}), "Vehicular Live Loads (LL)")
+    assert "Vehicles Considered & Selected truck" in vehicle
+
+
 def test_vehicular_and_footway_loads_have_separate_parameter_value_unit_tables():
     output = ch3_loads({
         KEY_FOOTPATH: "Single Side",

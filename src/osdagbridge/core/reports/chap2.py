@@ -161,7 +161,6 @@ This section reproduces the supplied input snapshot. N/A identifies an unavailab
 \end{table}
 \ReportTableGap
 
-\newpage
 \section{Additional Inputs}
 \label{sec:additional-inputs}
 
@@ -300,8 +299,6 @@ def _girder_tables(input_dict, n_girders):
         rst_rows = r"N/A & N/A & N/A & N/A & N/A & N/A \\ \hline"
 
     return (r"""
-\newpage
-
 \ReportTableGap
 \noindent
             
@@ -345,7 +342,6 @@ def _girder_tables(input_dict, n_girders):
 
 
 def _bracing_tables(input_dict, n_girders):
-    n = n_girders if n_girders >= 2 else 2
     panels = [
         (
             _render_value(input_dict, f"{KEY_MP_CB_SELECT_GIRDERS}.G{i}G{i+1}.B{i}M1"),
@@ -354,7 +350,7 @@ def _bracing_tables(input_dict, n_girders):
             _render_value(input_dict, f"{KEY_MP_ED_MEMBER_ID}.G{i}G{i+1}.E{i}M1"),
             i
         )
-        for i in range(1, n)
+        for i in range(1, n_girders)
     ]
 
     # Helper: one cross-bracing row (all locations share same bracing config)
@@ -381,14 +377,16 @@ def _bracing_tables(input_dict, n_girders):
 
     cb_rows = "".join([_cb_row(cb_loc, cb_ids, i) for cb_loc, cb_ids, _, _, i in panels])
     ed_rows = "".join([_ed_row(ed_loc, ed_ids, i) for _, _, ed_loc, ed_ids, i in panels])
+    if not panels:
+        note = "No adjacent girder pair is available from the supplied geometry."
+        cb_rows = r"\multicolumn{5}{|l|}{" + _tex(note) + r"} \\ \hline"
+        ed_rows = r"\multicolumn{4}{|l|}{" + _tex(note) + r"} \\ \hline"
 
     return (r"""
-\newpage
-
 \ReportTableGap
 
 
-\begin{longtable}{|L{2.2cm}|L{2.2cm}|L{3.0cm}|L{2.5cm}|C{1.8cm}|C{1.8cm}|}
+\begin{longtable}{|L{2.4cm}|L{2.4cm}|L{3.6cm}|L{3.6cm}|C{2.5cm}|}
 \caption{\textbf{Member Properties: Cross Bracing Details}}
 \hline
 \textbf{Location} & \textbf{Member IDs} & \textbf{Type of Bracing} & \textbf{Bracing Section} & \textbf{Spacing (m)} \\
@@ -401,7 +399,7 @@ def _bracing_tables(input_dict, n_girders):
 \noindent
 
 
-\begin{longtable}{|L{2.2cm}|L{2.2cm}|L{3.0cm}|L{2.5cm}|C{1.8cm}|C{1.8cm}|}
+\begin{longtable}{|L{2.8cm}|L{2.8cm}|L{4.4cm}|L{4.5cm}|}
 \caption{\textbf{Member Properties: End Diaphragm Details}}
 \hline
 \textbf{Location} & \textbf{Member IDs} & \textbf{Type of Bracing} & \textbf{Bracing Section} \\

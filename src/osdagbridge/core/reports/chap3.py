@@ -98,7 +98,10 @@ def ch3_loads(input_dict, output_dict=None):
     if custom and isinstance(custom, list):
         for c in custom:
             if isinstance(c, dict) and c.get('name'):
-                vehicles.append(str(c['name']))
+                # The custom-vehicle UI persists its own inclusion checkbox.
+                # Older saved records omitted it and were included by default.
+                if _selected(c.get('included', True)):
+                    vehicles.append(str(c['name']))
             elif isinstance(c, str):
                 vehicles.append(c)
                 

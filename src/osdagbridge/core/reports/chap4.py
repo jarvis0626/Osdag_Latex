@@ -1,5 +1,6 @@
 from .styles import styled_chapter
 
+import math
 from typing import TYPE_CHECKING
 from osdagbridge.core.utils.common import (
     KEY_SPAN,
@@ -14,8 +15,8 @@ if TYPE_CHECKING:
 
 @styled_chapter
 def ch4_analysis(asum, fig_paths, bridge: "ReportDataBridge", span_m: float):
-    lc_summary  = (asum or {}).get('load_cases', {})
-    rxn_summary = (asum or {}).get('reactions',  {})
+    lc_summary  = (asum or {}).get('load_cases') or {}
+    rxn_summary = (asum or {}).get('reactions') or {}
 
     def _is_moving(lc_name: str) -> bool:
         n = lc_name.lower()
@@ -24,11 +25,18 @@ def ch4_analysis(asum, fig_paths, bridge: "ReportDataBridge", span_m: float):
     lc_summary  = {k: v for k, v in lc_summary.items()  if not _is_moving(k)}
     rxn_summary = {k: v for k, v in rxn_summary.items() if not _is_moving(k)}
 
-    def _fmt(val, nd=3):
+    def _finite(val):
+        if isinstance(val, bool):
+            return None
         try:
-            return f"{float(val):.{nd}f}"
-        except (TypeError, ValueError):
-            return r"---"
+            number = float(val)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return number if math.isfinite(number) else None
+
+    def _fmt(val, nd=3):
+        number = _finite(val)
+        return f"{number:.{nd}f}" if number is not None else "N/A"
 
     def _merged_row(lc, bm_d, rxn_d):
         bm_d  = bm_d  or {}
@@ -52,36 +60,56 @@ def ch4_analysis(asum, fig_paths, bridge: "ReportDataBridge", span_m: float):
         for lc in all_lcs
     ) if all_lcs else r"--- & --- & --- & --- & --- & --- & --- & --- & --- \\[6pt]"
 
-    _span_m         = float(bridge.input_dict.get(KEY_SPAN, 0) or 0)
-    _allow_live_mm  = _span_m * 1000.0 / 800.0
-    _allow_total_mm = _span_m * 1000.0 / 600.0
+    reaction_body = "\n\\hline\n".join(
+        _tex(lc) + " & " + _fmt((values or {}).get('left_kN')) + " & "
+        + _fmt((values or {}).get('right_kN')) + r" \\[6pt]"
+        for lc, values in rxn_summary.items()
+    ) if rxn_summary else r"N/A & N/A & N/A \\[6pt]"
+
+    _span_m = _finite(bridge.input_dict.get(KEY_SPAN))
+    _valid_span = _span_m is not None and _span_m > 0
+    _allow_live_mm = _finite(_span_m * 1000.0 / 800.0) if _valid_span else None
+    _allow_total_mm = _finite(_span_m * 1000.0 / 600.0) if _valid_span else None
 
     # Find governing girder — worst (max) deflection across all girders
-    try:
-        n = int(bridge.input_dict.get(KEY_TS_NO_OF_GIRDERS, 1) or 1)
-    except (TypeError, ValueError):
-        n = 1
+    count = _finite(bridge.input_dict.get(KEY_TS_NO_OF_GIRDERS))
+    n = int(count) if count is not None and count.is_integer() and count >= 0 else 0
 
     _live_mm  = None
     _total_mm = None
+    _live_complete = _total_complete = n > 0
     for _gi in range(1, n + 1):
-        _l = bridge.output_dict.get(f"{KEY_SD_DEFL_LIVE}.G{_gi}")
-        _t = bridge.output_dict.get(f"{KEY_SD_DEFL_TOTAL}.G{_gi}")
-        if _l is not None:
-            _live_mm  = max(_live_mm, float(_l))  if _live_mm  is not None else float(_l)
-        if _t is not None:
-            _total_mm = max(_total_mm, float(_t)) if _total_mm is not None else float(_t)
+        _l = _finite(bridge.output_dict.get(f"{KEY_SD_DEFL_LIVE}.G{_gi}"))
+        _t = _finite(bridge.output_dict.get(f"{KEY_SD_DEFL_TOTAL}.G{_gi}"))
+        # The backend exports maximum absolute deflection magnitudes in mm.
+        # Missing or invalid member coverage cannot establish an overall pass.
+        if _l is not None and _l >= 0:
+            _live_mm = max(_live_mm, _l) if _live_mm is not None else _l
+        else:
+            _live_complete = False
+        if _t is not None and _t >= 0:
+            _total_mm = max(_total_mm, _t) if _total_mm is not None else _t
+        else:
+            _total_complete = False
 
-    _live_str        = f"{_live_mm:.3f} mm"  if _live_mm  is not None else "---"
-    _total_str       = f"{_total_mm:.3f} mm" if _total_mm is not None else "---"
-    _allow_live_str  = f"L/800 = {_allow_live_mm:.1f} mm"
-    _allow_total_str = f"L/600 = {_allow_total_mm:.1f} mm"
-    _live_status     = ("PASS" if _live_mm  <= _allow_live_mm  else r"\textcolor{reportFail}{FAIL}") if _live_mm  is not None else "---"
-    _total_status    = ("PASS" if _total_mm <= _allow_total_mm else r"\textcolor{reportFail}{FAIL}") if _total_mm is not None else "---"
+    def _status(value, limit, complete):
+        if value is not None and limit is not None:
+            if value > limit:
+                return r"\textcolor{reportFail}{FAIL}"
+            if complete:
+                return "PASS"
+        return "N/A"
+
+    _live_str = f"{_live_mm:.3f} mm" if _live_mm is not None else "N/A"
+    _total_str = f"{_total_mm:.3f} mm" if _total_mm is not None else "N/A"
+    _allow_live_str = f"L/800 = {_allow_live_mm:.1f} mm" if _allow_live_mm is not None else "N/A"
+    _allow_total_str = f"L/600 = {_allow_total_mm:.1f} mm" if _allow_total_mm is not None else "N/A"
+    _live_status = _status(_live_mm, _allow_live_mm, _live_complete)
+    _total_status = _status(_total_mm, _allow_total_mm, _total_complete)
     return r"""
 \chapter{Analysis Results}
 
-A grillage model was used for structural analysis. The deck is idealized as a grid of elastic beam elements --- longitudinal members represent the composite steel girders with effective slab, and transverse members represent the slab or cross frames. This section summarizes the critical output from that analysis.
+The OsdagBridge analysis backend uses a grillage model: longitudinal members represent the composite steel girders with effective slab, and transverse members represent the slab or cross frames. This section presents the supplied analysis results; generating this document does not run a new analysis.
 
 \ReportTableGap
 \begingroup
@@ -147,11 +175,7 @@ A grillage model was used for structural analysis. The deck is idealized as a gr
 \hline
 \textbf{Load Case} & \textbf{Left Support (kN)} & \textbf{Right Support (kN)} \\[6pt]
 \hline
- & """ + '' + r""" & """ + '' + r""" \\[6pt]
-\hline
- & """ + '' + r""" & """ + '' + r""" \\[6pt]
-\hline
- & """ + '' + r""" & """ + '' + r""" \\[6pt]
+""" + reaction_body + r"""
 \hline
 \end{longtable}
 
@@ -176,6 +200,8 @@ A grillage model was used for structural analysis. The deck is idealized as a gr
 \end{longtable}
 
 \ReportTableGap
+\noindent\textit{Deflections are maximum available supplied magnitudes. N/A check status denotes an unavailable span, invalid results, or incomplete girder coverage. Supplied failures remain visible.}
+\par
 \noindent
 """ + _fig_embed(fig_paths.get('bm_envelope'), 'Bending Moment Envelope (Envelope ULS): Max/min BM along span. X-axis: distance from left support (m). Y-axis: Bending Moment (kN-m).', width=r'0.75\textwidth') + r"""
 """ + _fig_embed(fig_paths.get('sf_envelope'), 'Shear Force Envelope (Envelope ULS): Max/min SF along span. X-axis: distance from left support (m). Y-axis: Shear Force (kN).', width=r'0.75\textwidth') + r"""

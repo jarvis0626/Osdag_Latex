@@ -641,7 +641,6 @@ Punching Shear Check & $v_{Ed} \leq v_{Rd,c}$ & """ + _dk_ratio(KEY_DD_PUNCH_VED
 \noindent\textit{Note: Punching shear reinforcement not typically required for deck slabs with $d \geq 200$ mm and adequate longitudinal reinforcement.}
 
 \vspace{1em}
-\clearpage
 \begin{longtable}{|L{7cm}|>{\arraybackslash}p{8.5cm}|}
 \caption{\textbf{Crack Width Check (Deck Slab)}}
 \hline
@@ -805,7 +804,7 @@ End diaphragms at the supports transfer transverse loads to the bearings, restra
 \label{sec:overall-summary}
 % ===========================
 
-""" + chart_figure(chart_paths, "utilization", "Utilization ratios from existing design results. The dashed line marks UR = 1.0; N/A means no valid result was supplied. Girder and bracing bars show the highest available check ratio for each member. Refer to individual checks for code-specific warning bands.") + r"""
+""" + chart_figure(chart_paths, "utilization", "Utilization ratios from existing design results. The red dashed line marks UR = 1.0; red bars are at or above that reference. N/A means no valid result was supplied. Girder and bracing bars show the highest available check ratio for each member. Refer to individual checks for code-specific warning bands.") + r"""
 
 \vspace{1em}
 \begin{longtable}{|C{3.4cm}|L{4.5cm}|C{2.3cm}|C{2.3cm}|>{\centering\arraybackslash}p{1.6cm}|}
