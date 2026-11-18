@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python scripts/setup_reports.py --with-compiler --dev
-      - run: .venv/bin/python -m pytest tests/reports/test_pdf_integration.py -q
+      - run: .venv/bin/python -m pytest tests/reports/test_pdf_integration.py tests/reports/test_official_requirements.py -q
         env:
           OSDAG_TEST_LATEX: ${{ github.workspace }}/.tools/tectonic
       - run: .venv/bin/python run_report.py --demo

@@ -227,7 +227,7 @@ def build_scenarios():
     cases.append(case)
 
     case = _fresh("29_missing_material_geometry", "Absent dimensions produce unavailable quantities, not invented tonnage.",
-                  required_text=("N.A.",))
+                  required_text=("N/A",))
     case.data["inputs"].pop(keys.KEY_TS_OVERALL_WIDTH)
     case.data["inputs"].pop(keys.KEY_TS_DECK_THICKNESS)
     case.data["inputs"].pop("member_properties.girder_details.section_properties.area")
@@ -266,6 +266,19 @@ def build_scenarios():
     case = _fresh("33_greek_temperature_symbols", "Greek engineering labels and Celsius symbols render with explicit TeX commands.",
                   required_source=(r"\ensuremath{\alpha}", r"\ensuremath{\sigma}", r"\ensuremath{^\circ}C"))
     case.data["metadata"]["company"] = "Engineering \u03b1, \u03c3, \u0394 at 25\u2103"
+    cases.append(case)
+
+    case = _fresh("34_custom_vehicle_inclusion", "The actual custom-vehicle UI inclusion flag controls report selection.",
+                  required_source=("Included inspection truck",), forbidden_source=("Excluded control truck",))
+    case.data["inputs"][keys.KEY_LL_CUSTOM_VEHICLES] = [
+        {"name": "Included inspection truck", "included": True},
+        {"name": "Excluded control truck", "included": False},
+    ]
+    cases.append(case)
+
+    case = _fresh("35_supplied_diaphragm_quantity", "Explicitly supplied end-diaphragm tonnage is retained in the table and material chart.",
+                  required_source=("End Diaphragms", "steel_quantities.png"), required_text=("2.75",))
+    case.data["inputs"]["end_diaphragm_wt_total"] = 2.75
     cases.append(case)
     return cases
 
