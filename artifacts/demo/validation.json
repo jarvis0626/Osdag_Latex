@@ -1,8 +1,8 @@
 {
-  "date": "2026-11-17",
+  "date": "2026-11-18",
   "scope": "Synthetic report rendering; no bridge analysis or GUI run",
   "baseline_revision": "d74f56dd7f22925fb8148cabf5740ed8d1e39ff3",
-  "implementation_commit": "3d3c4da",
+  "implementation_commit": "5a666b6",
   "python": "3.12.3",
   "dependencies": {
     "matplotlib": "3.11.2",
@@ -13,7 +13,7 @@
   },
   "compiler": "Tectonic 0.17.0",
   "baseline_compilation": "Original templates retained; continued through upstream LaTeX errors",
-  "enhanced_compilation": "Successful exit and valid PDF; minor layout warnings remain",
+  "enhanced_compilation": "Successful exit and valid PDF; zero overfull boxes or missing glyph warnings; underfull/fontconfig warnings remain",
   "reports": {
     "Report_Before": {
       "pdf": "artifacts/demo/Report_Before.pdf",
@@ -25,8 +25,8 @@
     },
     "Report_After": {
       "pdf": "artifacts/demo/Report_After.pdf",
-      "sha256": "658db534c6d9f64cde46fc885e1cb317905f9f29c7a6ab6f9097884aeba1ab0a",
-      "pages": 36,
+      "sha256": "961fa09586e47bb8a7ad75f3b44c57758a7afcc28d899e43cf3ac47385a0248b",
+      "pages": 33,
       "source": "artifacts/demo/Report_After.tex",
       "tables": 45,
       "continuation_headers": 45

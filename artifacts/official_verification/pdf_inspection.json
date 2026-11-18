@@ -1,0 +1,178 @@
+{
+  "pdf": "artifacts/demo/Report_After.pdf",
+  "page_count": 33,
+  "pages": [
+    {
+      "page": 1,
+      "characters": 502,
+      "rotation": 0
+    },
+    {
+      "page": 2,
+      "characters": 1063,
+      "rotation": 0
+    },
+    {
+      "page": 3,
+      "characters": 1364,
+      "rotation": 0
+    },
+    {
+      "page": 4,
+      "characters": 999,
+      "rotation": 0
+    },
+    {
+      "page": 5,
+      "characters": 1209,
+      "rotation": 0
+    },
+    {
+      "page": 6,
+      "characters": 1100,
+      "rotation": 0
+    },
+    {
+      "page": 7,
+      "characters": 869,
+      "rotation": 0
+    },
+    {
+      "page": 8,
+      "characters": 1063,
+      "rotation": 0
+    },
+    {
+      "page": 9,
+      "characters": 948,
+      "rotation": 0
+    },
+    {
+      "page": 10,
+      "characters": 419,
+      "rotation": 0
+    },
+    {
+      "page": 11,
+      "characters": 1193,
+      "rotation": 0
+    },
+    {
+      "page": 12,
+      "characters": 928,
+      "rotation": 0
+    },
+    {
+      "page": 13,
+      "characters": 1426,
+      "rotation": 0
+    },
+    {
+      "page": 14,
+      "characters": 462,
+      "rotation": 0
+    },
+    {
+      "page": 15,
+      "characters": 1868,
+      "rotation": 0
+    },
+    {
+      "page": 16,
+      "characters": 1749,
+      "rotation": 0
+    },
+    {
+      "page": 17,
+      "characters": 1295,
+      "rotation": 0
+    },
+    {
+      "page": 18,
+      "characters": 1561,
+      "rotation": 0
+    },
+    {
+      "page": 19,
+      "characters": 1414,
+      "rotation": 0
+    },
+    {
+      "page": 20,
+      "characters": 1503,
+      "rotation": 0
+    },
+    {
+      "page": 21,
+      "characters": 1414,
+      "rotation": 0
+    },
+    {
+      "page": 22,
+      "characters": 1513,
+      "rotation": 0
+    },
+    {
+      "page": 23,
+      "characters": 1632,
+      "rotation": 0
+    },
+    {
+      "page": 24,
+      "characters": 699,
+      "rotation": 0
+    },
+    {
+      "page": 25,
+      "characters": 1306,
+      "rotation": 0
+    },
+    {
+      "page": 26,
+      "characters": 1265,
+      "rotation": 0
+    },
+    {
+      "page": 27,
+      "characters": 1196,
+      "rotation": 0
+    },
+    {
+      "page": 28,
+      "characters": 393,
+      "rotation": 0
+    },
+    {
+      "page": 29,
+      "characters": 1458,
+      "rotation": 0
+    },
+    {
+      "page": 30,
+      "characters": 1646,
+      "rotation": 0
+    },
+    {
+      "page": 31,
+      "characters": 1416,
+      "rotation": 0
+    },
+    {
+      "page": 32,
+      "characters": 678,
+      "rotation": 0
+    },
+    {
+      "page": 33,
+      "characters": 1163,
+      "rotation": 0
+    }
+  ],
+  "row_count": null,
+  "errors": [],
+  "warnings": [],
+  "textless_pages": [],
+  "encrypted": false,
+  "passed": true,
+  "scope": "Extractable text and identified table-row baselines (PyMuPDF); drawings require visual review."
+}

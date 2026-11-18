@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-18",
+  "runtime_source_commit": "5a666b62c5b84d9aece96204be7dba7ff6facd93",
+  "checkpoint_commit": "06821aab652d2edec2607c4ef2c6dc8505b0bd31",
+  "specification": {
+    "authority": "Six requirements supplied by the user on 18 November 2026",
+    "actual_screening_pdf_attached": false,
+    "pdf_only_rules_read": false
+  },
+  "scope": "Report rendering and saved-result consistency; synthetic data, not a full bridge analysis.",
+  "tests": {
+    "tests": 393,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 393,
+    "actual_compiler_tests_enabled": true,
+    "exported_package_test_enabled": true
+  },
+  "report_matrix": {
+    "passed": 35,
+    "failed": 0,
+    "total": 35,
+    "evidence": "report_matrix.json"
+  },
+  "report_before": {
+    "sha256": "693e1dda930aa91e6f78948ec4773134111764ecef0afe62744451530fe76e82",
+    "pages": 47,
+    "tables": 49,
+    "continuation_headers": 2,
+    "unchanged": true
+  },
+  "report_after": {
+    "sha256": "961fa09586e47bb8a7ad75f3b44c57758a7afcc28d899e43cf3ac47385a0248b",
+    "pages": 33,
+    "tables": 45,
+    "continuation_headers": 45
+  },
+  "pdf_checks": {
+    "passed": true,
+    "overfull_boxes": 0,
+    "missing_glyph_warnings": 0,
+    "empty_text_pages": 0,
+    "body_text_footer_minimum_baseline_gap_pt": 40.67,
+    "visual_review_pages": [
+      1,
+      9,
+      17,
+      18,
+      24,
+      27,
+      28
+    ],
+    "remaining_warnings": [
+      "Underfull paragraph warnings",
+      "Local Fontconfig configuration warning"
+    ]
+  },
+  "package_test": {
+    "runtime_source_commit": "5a666b62c5b84d9aece96204be7dba7ff6facd93",
+    "development_bundle_source": "5a666b62c5b84d9aece96204be7dba7ff6facd93-dirty",
+    "notes": "Runtime sources were committed; documentation changes were pending when the test ZIP was prepared. Final ZIP is rebuilt after documentation commit."
+  },
+  "gui": {
+    "command": "PYTHONPATH=src .venv/Scripts/python.exe -m osdagbridge.desktop",
+    "exit_code": 1,
+    "reason": "ModuleNotFoundError: No module named PySide6",
+    "genuine_bridge_design_executed": false,
+    "manual_steps": "docs/gui_verification.md"
+  },
+  "engineering_backend_changed": false,
+  "collaborators_added": false,
+  "programme_submission_made": false,
+  "limits": [
+    "Full GUI design and genuine before/after comparison remain unverified.",
+    "No actual screening PDF was attached; PDF-only rules were not read.",
+    "Unavailable force/diaphragm quantity fields are not fabricated.",
+    "Backend design methods and project-specific standard editions are not independently certified."
+  ]
+}

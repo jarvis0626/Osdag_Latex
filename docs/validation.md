@@ -1,10 +1,44 @@
 # Validation evidence and limits
 
-The follow-up audit ran on 17 November 2026 with Windows and Python 3.12 in the isolated reporting environment.
+The latest six-requirement follow-up ran on **18 November 2026**, on Windows
+with Python 3.12 in the isolated reporting environment. Source, hashes and
+executed counts are recorded in
+[`artifacts/official_verification/validation.json`](../artifacts/official_verification/validation.json).
 
-## Executed checks
+## Latest executed checks
 
-The final local suite records **321 passing tests, zero failures and zero skips**, with both real Tectonic pagination and the exported-package check enabled. The source revision, aggregate results and artifact hashes are recorded in `artifacts/audit/validation.json`.
+The final suite passed **393 tests with zero failures and zero skips**. Both
+real compiler tests and the exported-package check were enabled. The real
+contract PDF confirms Section 5.5 placement and all three generated chart
+assets; other checks verify four independent result sources, plot properties,
+temporary cleanup, UI selection, material consistency and incomplete analysis.
+
+The final matrix compiles **35 distinct synthetic report scenarios** into real
+PDFs, adding actual custom-vehicle inclusion flags and supplied diaphragm mass
+to the previous cases. The checked summary is
+`artifacts/official_verification/report_matrix.json`.
+
+`Report_Before.pdf` remains byte-for-byte unchanged, with SHA-256
+`693e1dda930aa91e6f78948ec4773134111764ecef0afe62744451530fe76e82`.
+Only `Report_After.pdf` was regenerated from the existing saved fixture. It has
+**33 pages**, no empty-text pages, no overfull-box or missing-glyph warnings,
+and passed PDF parsing/required-text checks. Underfull-text and a local
+Fontconfig configuration warning remain; these do not imply compiler failure.
+Input, analysis, structured-check, utilization and material pages were visually
+reviewed. The minimum extracted body-text/footer baseline gap over all 33 pages
+was **40.67pt**, above the 18pt regression policy. This does not prove arbitrary
+image/page layouts safe; drawing geometry still needs visual review.
+
+The real 100-row pagination regression also passed again. The original
+engineering backend/IRC/BOQ source remains unchanged. The actual GUI entry
+command failed before opening a window because PySide6 is unavailable; this is
+a recorded environment limitation, not a passed GUI test. See
+[gui_verification.md](gui_verification.md) and the
+[six-requirement audit](official_requirements_audit.md).
+
+## Previous 17 November checkpoint
+
+That checkpoint recorded **321 passing tests, zero failures and zero skips**, with both real Tectonic pagination and the exported-package check enabled. Its source revision, aggregate results and artifact hashes are retained in `artifacts/audit/validation.json` as historical evidence.
 
 The varied report matrix compiles **33 distinct synthetic report scenarios** into actual PDFs. It covers missing geometry, one/twelve girders, optional chapters, vehicle selections, custom text, Unicode and Greek/Celsius symbols, long metadata, partial and nonfinite results, unity/exceeded ratios, separate transverse components, material scales, 150 load cases and supplied image bytes. The summary is in `artifacts/audit/report_matrix.json`. These are reporting fixtures, not independent bridge analyses.
 
@@ -24,4 +58,4 @@ The initial GitHub Windows/Linux checks passed before this follow-up. The revise
 
 ## Submission limits
 
-The complete GUI/CAD Design-to-Report workflow has not been executed with a genuine bridge model. The before/after examples remain synthetic. End-diaphragm BOQ mass and some forces are missing; reinforcement mass remains an estimate. Standard editions and template assumptions require project-specific verification. Exact Winter task linkage/policies and reviewer access are unresolved. See [requirement-by-requirement audit](submission_audit.md).
+The complete GUI/CAD Design-to-Report workflow has not been executed with a genuine bridge model. The before/after examples remain synthetic. End-diaphragm BOQ mass and some forces are missing; reinforcement mass remains an estimate. Standard editions and template assumptions require project-specific verification. The six user-supplied requirements now define implementation scope; the actual screening PDF, additional PDF-only rules and reviewer access remain outstanding. See [requirement-by-requirement audit](submission_audit.md).

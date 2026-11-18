@@ -432,7 +432,6 @@ This section reproduces the supplied input snapshot. N/A identifies an unavailab
 
 \ReportTableGap
 
-\newpage
 \section{Additional Inputs}
 \label{sec:additional-inputs}
 
@@ -511,8 +510,6 @@ Where the user has modified additional inputs, those values are reported here. W
 \end{longtable}
 \endgroup
 
-
-\newpage
 
 \ReportTableGap
 \noindent
@@ -611,15 +608,13 @@ G4 & N/A, N/A & N/A & N/A; Spacing: N/A; Thickness: N/A & N/A & No.: N/A; Spacin
 
 
 
-\newpage
-
 \ReportTableGap
 
 
 \begingroup
 \ReportTableSetup
 \ReportTableFont
-\begin{longtable}{|L{2.2000cm}|L{2.2000cm}|L{3.0000cm}|L{2.5000cm}|C{1.8000cm}|C{1.8000cm}|}
+\begin{longtable}{|L{2.4000cm}|L{2.4000cm}|L{3.6000cm}|L{3.6000cm}|C{2.5000cm}|}
 \caption{\textbf{Member Properties: Cross Bracing Details}}\\
 \hline
 \textbf{Location} & \textbf{Member IDs} & \textbf{Type of Bracing} & \textbf{Bracing Section} & \textbf{Spacing (m)} \\
@@ -650,7 +645,7 @@ N/A & N/A & N/A & N/A & N/A \\[\ReportRowGap]
 \begingroup
 \ReportTableSetup
 \ReportTableFont
-\begin{longtable}{|L{2.2000cm}|L{2.2000cm}|L{3.0000cm}|L{2.5000cm}|C{1.8000cm}|C{1.8000cm}|}
+\begin{longtable}{|L{2.8000cm}|L{2.8000cm}|L{4.4000cm}|L{4.5000cm}|}
 \caption{\textbf{Member Properties: End Diaphragm Details}}\\
 \hline
 \textbf{Location} & \textbf{Member IDs} & \textbf{Type of Bracing} & \textbf{Bracing Section} \\
@@ -1049,7 +1044,7 @@ SLS-07 & DL(1.00) + SIDL(1.20/1.00) + LL(0.00) + WL(0.00) + TL(0.50) \\[\ReportR
 \setcounter{chapter}{3}
 \chapter{Analysis Results}
 
-A grillage model was used for structural analysis. The deck is idealized as a grid of elastic beam elements --- longitudinal members represent the composite steel girders with effective slab, and transverse members represent the slab or cross frames. This section summarizes the critical output from that analysis.
+The OsdagBridge analysis backend uses a grillage model: longitudinal members represent the composite steel girders with effective slab, and transverse members represent the slab or cross frames. This section presents the supplied analysis results; generating this document does not run a new analysis.
 
 \ReportTableGap
 \begingroup
@@ -1218,11 +1213,7 @@ Synthetic LC 44 & 2680.000 & G2 & 12.500 & 294.000 & G1 & 0.000 & N/A & N/A \\[\
 \hline
 \endlastfoot
 
- & N/A & N/A \\[\ReportRowGap]
-\hline
- N/A & N/A & N/A \\[\ReportRowGap]
-\hline
- N/A & N/A & N/A \\[\ReportRowGap]
+N/A & N/A & N/A \\[\ReportRowGap]
 \hline
 \end{longtable}
 \endgroup
@@ -1262,12 +1253,14 @@ Synthetic LC 44 & 2680.000 & G2 & 12.500 & 294.000 & G1 & 0.000 & N/A & N/A \\[\
 \endgroup
 
 \ReportTableGap
+\noindent\textit{Deflections are maximum available supplied magnitudes. N/A check status denotes an unavailable span, invalid results, or incomplete girder coverage. Supplied failures remain visible.}
+\par
 \noindent
 \noindent\textit{Unavailable: Bending Moment Envelope (Envelope ULS):\allowbreak{} Max/min BM along span. X-axis:\allowbreak{} distance from left support (m). Y-axis:\allowbreak{} Bending Moment (kN-m).. No drawing was supplied.}\par
 
 \noindent\textit{Unavailable: Shear Force Envelope (Envelope ULS):\allowbreak{} Max/min SF along span. X-axis:\allowbreak{} distance from left support (m). Y-axis:\allowbreak{} Shear Force (kN).. No drawing was supplied.}\par
 
-\noindent\textit{Unavailable: Vertical Deflection D\$\_\allowbreak{}y\$ (1.0 LL):\allowbreak{} Maximum deflection along span. Load Case:\allowbreak{} 1.0 LL, Combination:\allowbreak{} \$D\_\allowbreak{}y\$. Nodes shown. Isometric view.. No drawing was supplied.}\par
+\noindent\textit{Unavailable: Vertical deflection (Dy) under 1.0 LL:\allowbreak{} Maximum deflection along span. Load case and combination:\allowbreak{} 1.0 LL. Nodes shown. Isometric view.. No drawing was supplied.}\par
 
 
 \setcounter{chapter}{4}
@@ -1280,7 +1273,7 @@ These are supplied backend checks, with each member and load case kept separate.
 \begingroup
 \ReportTableSetup
 \ReportTableFont
-\begin{longtable}{|L{1.5749cm}|L{3.0623cm}|L{1.5749cm}|L{1.5749cm}|C{1.2249cm}|C{1.7499cm}|L{2.4498cm}|L{1.9249cm}|}
+\begin{longtable}{|L{1.6122cm}|L{2.6869cm}|L{1.7913cm}|L{1.7913cm}|C{1.0748cm}|C{1.7913cm}|L{2.2391cm}|L{2.1496cm}|}
 \caption{Supplied Girder Design Checks}\\\hline
 \textbf{Member} & \textbf{Check} & \textbf{Demand} & \textbf{Capacity} & \textbf{UR} & \textbf{Backend status} & \textbf{Source / load case} & \textbf{Reference} \\ \hline
 \endfirsthead
@@ -1461,7 +1454,6 @@ Punching Shear Check & $v_{Ed} \leq v_{Rd,c}$ & N/A & N/A \\[\ReportRowGap]
 \noindent\textit{Note: Punching shear reinforcement not typically required for deck slabs with $d \geq 200$ mm and adequate longitudinal reinforcement.}
 
 \ReportTableGap
-\clearpage
 \begingroup
 \ReportTableSetup
 \ReportTableFont
@@ -1763,7 +1755,7 @@ G1-G2 & diagonal (compression) & ISA 75x75x8 & Synthetic ULS & 115.000 & 100.000
 \begin{figure}[htbp]%
 \centering%
 \includegraphics[width=0.98\linewidth]{Report_After_assets/utilization.png}%
-\caption{Utilization ratios from existing design results. The dashed line marks UR = 1.0; N/A means no valid result was supplied. Girder and bracing bars show the highest available check ratio for each member. Refer to individual checks for code{-}specific warning bands.}%
+\caption{Utilization ratios from existing design results. The red dashed line marks UR = 1.0; red bars are at or above that reference. N/A means no valid result was supplied. Girder and bracing bars show the highest available check ratio for each member. Refer to individual checks for code{-}specific warning bands.}%
 \end{figure}
 
 \ReportTableGap
@@ -1917,7 +1909,7 @@ This section presents CAD-generated views of the designed bridge and its compone
 \hline
 2(c) & Cross Bracing - Diagonal Chord & N/A & N/A & N/A & N/A & N/A \\
 \hline
-2(d) & End Diaphragms & N.A. & N.A. & N.A. & N.A. & N.A. \\
+2(d) & End Diaphragms & N/A & N/A & N/A & N/A & N/A \\
 \hline
 3 & Concrete for Deck Slab & $10.50\text{ m} \times 0.25\text{ m} \times 25.00\text{ m} = 65.62\text{ m}^3$ & 1 & 65.62 & 164.06 & 164.06 \\
 \hline
@@ -2027,7 +2019,6 @@ IS 2062 & 2011 & Structural steel - yield and ultimate strength by grade \\
 \endgroup
 
 
-\clearpage
 \section{Analysis and Design Assumptions of This Version}
 \label{sec:design-assumptions}
 
@@ -2074,8 +2065,8 @@ IS 2062 & 2011 & Structural steel - yield and ultimate strength by grade \\
 \begin{itemize}
 \item Dead load densities per IRC 6:2017 Cl.203: structural steel $78.5 \ \text{kN/m}^3$, concrete $25.0 \ \text{kN/m}^3$, bituminous wearing course $24.0 \ \text{kN/m}^3$.
 \item Multi-lane live load reduction factors per IRC 6:2017 Cl.204.4 Table 6A: 1st lane = 1.0, 2nd lane = 0.8, 3rd lane onwards = 0.4.
-\item Impact factor (dynamic load allowance) computed from span per IRC 6:2017 Cl.208.2/208.3.
-\item Wind load applied as transverse, longitudinal, and vertical components per IRC 6:2017, clauses 209.3.3 to 209.3.5.
+\item Impact factor (dynamic load allowance) follows the span rules in IRC 6:2017, clauses 208.2 and 208.3.
+\item Wind load has transverse, longitudinal and vertical components (IRC 6:2017, clauses 209.3.3 to 209.3.5).
 \end{itemize}
 
 \textbf{Serviceability Limits}

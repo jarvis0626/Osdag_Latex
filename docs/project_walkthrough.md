@@ -105,6 +105,15 @@ checks. Missing results, zero capacity and explicit failures remain distinct.
 Missing drawings use compact unavailable notes; real supplied drawings are
 embedded when present. No illustration is invented as a bridge drawing.
 
+The six-requirement follow-up also respects each custom vehicle's actual
+inclusion checkbox, uses supplied support reactions instead of blank rows,
+and prevents incomplete or nonfinite analysis values from becoming a passing
+deflection check. Chapter 7 applies the same quantity validity rules to its
+table and charts. These changes preserve the supplied engineering data and
+do not add a structural solver. See the
+[current requirement audit](official_requirements_audit.md) for the source/test
+mapping and [GUI guide](gui_verification.md) for the uncompleted native workflow.
+
 ## Features and their practical limits
 
 | Capability | What works | Limit |

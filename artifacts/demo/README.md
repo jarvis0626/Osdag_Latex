@@ -16,10 +16,15 @@ The enhanced report requires a successful compiler exit and valid PDF output.
 Source and matching image assets are included so each report can be inspected
 and rebuilt. Generated `.log` files remain local and are not committed.
 
+The 18 November follow-up preserves the tracked original baseline byte for
+byte and regenerates only the enhanced PDF from the existing saved fixture.
+It records the updated checks and 33-page result in
+[`artifacts/official_verification`](../official_verification/validation.json).
+
 Reproduce from the repository root:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/build_comparison.py --compiler .tools/tectonic.exe
+.\.venv\Scripts\python.exe scripts/build_comparison.py --compiler .tools/tectonic.exe --output output/reproduced-comparison
 ```
 
 Before submission, replace this demonstration evidence with reports from the

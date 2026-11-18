@@ -76,6 +76,11 @@ distinguishes backend results, reporting arithmetic, inherited estimates and
 synthetic data. The [submission audit](docs/submission_audit.md) marks the
 remaining internship requirements explicitly.
 
+The [six-requirement audit](docs/official_requirements_audit.md) maps each
+user-supplied screening requirement to source and tests. The
+[GUI verification guide](docs/gui_verification.md) records the actual startup
+limitation and the commands/manual steps still required for a genuine design.
+
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 $env:OSDAG_TEST_LATEX = "$PWD\.tools\tectonic.exe"
@@ -107,7 +112,7 @@ The [demo artifacts](artifacts/demo/README.md) include the original and enhanced
 PDFs for the same synthetic fixture. Rebuild both with Tectonic:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/build_comparison.py --compiler .tools/tectonic.exe
+.\.venv\Scripts\python.exe scripts/build_comparison.py --compiler .tools/tectonic.exe --output output/reproduced-comparison
 ```
 
 The baseline uses the original upstream report functions and retains their

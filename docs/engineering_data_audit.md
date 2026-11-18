@@ -44,6 +44,16 @@ were changed.
    a table look complete.
 7. Fixed “M40” and “Fe 500” material labels were not justified by arbitrary
    snapshots. The quantity table now uses neutral material descriptions.
+8. The custom-vehicle report now respects the UI's `included` checkbox rather
+   than displaying every stored vehicle record. Legacy records without this
+   field retain the UI's included-by-default behavior.
+9. Quantity tables and plots use the same validity rule. A supplied diaphragm
+   mass can be displayed, including zero; missing/negative/nonfinite values
+   remain N/A rather than leaking invalid text into only one view.
+10. Analysis presentation now uses supplied support reactions and finite
+    deflection magnitudes. The inherited L/800 and L/600 comparisons require a
+    valid span and complete girder coverage for a pass; available failures
+    remain visible. These are report comparisons, not changes to the designer.
 
 ## Quantities: what has and has not been checked
 

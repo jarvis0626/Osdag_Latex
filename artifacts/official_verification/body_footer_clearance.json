@@ -1,0 +1,139 @@
+{
+  "scope": "Extracted body-text/footer baselines in this synthetic report; image geometry is reviewed visually.",
+  "pages_checked": 33,
+  "minimum_baseline_gap_pt": 40.67,
+  "pages": [
+    {
+      "page": 1,
+      "baseline_gap_pt": 157.79
+    },
+    {
+      "page": 2,
+      "baseline_gap_pt": 149.56
+    },
+    {
+      "page": 3,
+      "baseline_gap_pt": 69.76
+    },
+    {
+      "page": 4,
+      "baseline_gap_pt": 380.04
+    },
+    {
+      "page": 5,
+      "baseline_gap_pt": 112.28
+    },
+    {
+      "page": 6,
+      "baseline_gap_pt": 50.53
+    },
+    {
+      "page": 7,
+      "baseline_gap_pt": 151.79
+    },
+    {
+      "page": 8,
+      "baseline_gap_pt": 64.68
+    },
+    {
+      "page": 9,
+      "baseline_gap_pt": 84.96
+    },
+    {
+      "page": 10,
+      "baseline_gap_pt": 496.65
+    },
+    {
+      "page": 11,
+      "baseline_gap_pt": 83.95
+    },
+    {
+      "page": 12,
+      "baseline_gap_pt": 68.26
+    },
+    {
+      "page": 13,
+      "baseline_gap_pt": 55.74
+    },
+    {
+      "page": 14,
+      "baseline_gap_pt": 581.88
+    },
+    {
+      "page": 15,
+      "baseline_gap_pt": 48.42
+    },
+    {
+      "page": 16,
+      "baseline_gap_pt": 110.76
+    },
+    {
+      "page": 17,
+      "baseline_gap_pt": 279.01
+    },
+    {
+      "page": 18,
+      "baseline_gap_pt": 44.23
+    },
+    {
+      "page": 19,
+      "baseline_gap_pt": 44.84
+    },
+    {
+      "page": 20,
+      "baseline_gap_pt": 47.88
+    },
+    {
+      "page": 21,
+      "baseline_gap_pt": 61.33
+    },
+    {
+      "page": 22,
+      "baseline_gap_pt": 56.24
+    },
+    {
+      "page": 23,
+      "baseline_gap_pt": 42.87
+    },
+    {
+      "page": 24,
+      "baseline_gap_pt": 57.49
+    },
+    {
+      "page": 25,
+      "baseline_gap_pt": 79.06
+    },
+    {
+      "page": 26,
+      "baseline_gap_pt": 202.11
+    },
+    {
+      "page": 27,
+      "baseline_gap_pt": 158.2
+    },
+    {
+      "page": 28,
+      "baseline_gap_pt": 92.13
+    },
+    {
+      "page": 29,
+      "baseline_gap_pt": 97.5
+    },
+    {
+      "page": 30,
+      "baseline_gap_pt": 40.67
+    },
+    {
+      "page": 31,
+      "baseline_gap_pt": 95.12
+    },
+    {
+      "page": 32,
+      "baseline_gap_pt": 505.38
+    },
+    {
+      "page": 33,
+      "baseline_gap_pt": 324.87
+    }
+  ]
+}

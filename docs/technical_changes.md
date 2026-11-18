@@ -1,5 +1,34 @@
 # Technical changes
 
+## Six-requirement follow-up, 18 November 2026
+
+The [current audit](official_requirements_audit.md) uses the six requirements
+supplied by the user. It distinguishes implemented mechanisms and automatic
+evidence from the failed native GUI startup and pending genuine-design review.
+The actual screening PDF was not attached, so PDF-only wording is not claimed
+as read. Earlier source-link uncertainty below is historical provenance.
+
+This follow-up changes `chap2.py` to use five/four actual bracing columns and
+avoid nonexistent adjacent pairs; `chap3.py` now respects the custom-vehicle
+UI inclusion checkbox. `chap4.py` uses supplied support reactions and guards
+missing/nonfinite deflections without changing valid values or inherited
+L/800 and L/600 limits. Incomplete member coverage cannot establish a pass.
+Unnecessary local page breaks in Chapters 2, 5 and 8 are removed.
+
+`chap7._quantity_cell()` shares the chart extractor's numeric validity rules:
+missing, negative, Boolean and nonfinite quantities become N/A in both views;
+actual zero and valid supplied precision remain visible. Trusted original BOQ
+formula fragments remain intact. `charts._bars()` highlights ratios at or
+above unity, with captions separating that visual reference from code-specific
+backend status bands. `data.py` gives demand/capacity/reference headings enough
+width, and plain-text missing-figure captions no longer expose math markup.
+
+The new contract tests check real PDF Section 5.5 numbering and chart embedding,
+supplied diaphragm mass, source snapshots, relative image exports, and temporary
+cleanup after source-only, successful and failed compilation. The matrix adds
+custom-vehicle inclusion and supplied diaphragm quantity scenarios. The full
+executed results are recorded in the latest validation manifest.
+
 The follow-up audit also replaced repeated controlling-girder scalar tables
 with actual structured per-member checks, made missing cells and drawings
 explicit, added Greek/Celsius escaping, and preserved backend warning/failure
@@ -23,8 +52,8 @@ source extraction, and reproducibility.
 The source baseline is
 [`Nidhikhare12/OsdagBridge`, `dev`](https://github.com/Nidhikhare12/OsdagBridge/tree/dev),
 revision `d74f56dd7f22925fb8148cabf5740ed8d1e39ff3`.
-See [task_requirements.md](task_requirements.md) for the detailed task source,
-the unresolved Winter/Autumn linkage, and remaining submission requirements.
+See [task_requirements.md](task_requirements.md) for historical published-source
+provenance, the current user-supplied scope and remaining submission requirements.
 
 ## Rendering architecture
 
@@ -130,6 +159,7 @@ engineering glyphs. Trusted report formulas remain separate from plain text.
 | `report_generator.py` | Payload snapshot, chart lifecycle, source bundles, compiler integration |
 | `compilation.py` | Compiler discovery, execution, artifact verification, diagnostics |
 | `report_utils.py` | Plain-text escaping and shared report helpers |
+| `data.py` | Structured member checks, provenance and readable result-table columns |
 | `__main__.py`, `demo.py` | Headless saved-result workflow and labeled synthetic fixture |
 
 At the implementation checkpoint, `python -m pytest tests/reports -q` ran
