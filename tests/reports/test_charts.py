@@ -103,6 +103,18 @@ def test_plot_has_red_dashed_threshold_and_missing_marker_without_zero_bar():
     assert threshold.get_color() == STYLE.failure_color
 
 
+def test_unity_and_above_unity_are_red_without_reclassifying_backend_statuses():
+    from matplotlib.colors import to_rgba
+    from matplotlib.figure import Figure
+    from osdagbridge.core.reports.styles import STYLE
+
+    ax = Figure().subplots()
+    _bars(ax, {"Below": 0.99, "Unity": 1.0, "Above": 1.01}, "UR", "Utilization Ratio", utilization=True)
+    assert [bar.get_facecolor() for bar in ax.patches] == [
+        to_rgba(STYLE.green), to_rgba(STYLE.failure_color), to_rgba(STYLE.failure_color),
+    ]
+
+
 def test_three_png_assets_are_rendered_without_changing_backend(tmp_path):
     import matplotlib
     backend = matplotlib.get_backend()

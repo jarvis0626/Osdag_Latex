@@ -195,7 +195,7 @@ def _bars(ax, values, title, ylabel, *, utilization=False):
             ax.text(index, 0.04, "N/A", ha="center", color=STYLE.chart_missing_color,
                     transform=ax.get_xaxis_transform(), fontsize=STYLE.chart_font_size)
         else:
-            color = STYLE.failure_color if utilization and value > 1 else STYLE.green
+            color = STYLE.failure_color if utilization and value >= 1 else STYLE.green
             ax.bar(index, value, color=color, width=0.58)
             ax.annotate(f"{value:.2f}", (index, value), xytext=(0, 4),
                         textcoords="offset points", ha="center", fontsize=STYLE.chart_font_size)

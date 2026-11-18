@@ -1,5 +1,25 @@
-from .charts import chart_figure
+from .charts import chart_figure, nonnegative_number
+from .report_utils import _tex
 from .styles import styled_chapter
+
+
+def _quantity_cell(input_dict, key):
+    """Use the chart's quantity validity rules without changing BOQ values.
+
+    The existing BOQ helper supplies delimited LaTeX formula fragments. Keep
+    those trusted fragments intact; escape any ordinary explanatory text.
+    Numeric cells preserve supplied precision, but unavailable, negative and
+    nonfinite quantities cannot become values in either the table or chart.
+    """
+    value = input_dict.get(key)
+    if key.endswith("_vol_formula"):
+        if not isinstance(value, str) or not value.strip():
+            return "N/A"
+        value = value.strip()
+        if value.lower() in {"n.a.", "n/a", "nan", "inf", "+inf", "-inf", "infinity", "+infinity", "-infinity"} or "\\placeholder" in value:
+            return "N/A"
+        return value if value.startswith("$") and value.endswith("$") else _tex(value)
+    return _tex(value) if nonnegative_number(value) is not None else "N/A"
 
 
 @styled_chapter
@@ -16,23 +36,23 @@ def ch7_quantities(input_dict, chart_paths=None):
 \hline
 \textbf{S.N.} & \textbf{Item Description} & \textbf{Volume} & \textbf{Quantity} & \textbf{Total Volume} & \textbf{Weight (MT)} & \textbf{Total Weight (MT)} \\
 \hline
-1 & Structural Steel for Girders & """ + str(input_dict.get("steel_girders_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("steel_girders_qty", "N.A.")) + r""" & """ + str(input_dict.get("steel_girders_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("steel_girders_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("steel_girders_wt_total", "N.A.")) + r""" \\
+1 & Structural Steel for Girders & """ + _quantity_cell(input_dict, "steel_girders_vol_formula") + r""" & """ + _quantity_cell(input_dict, "steel_girders_qty") + r""" & """ + _quantity_cell(input_dict, "steel_girders_vol_total") + r""" & """ + _quantity_cell(input_dict, "steel_girders_wt_single") + r""" & """ + _quantity_cell(input_dict, "steel_girders_wt_total") + r""" \\
 \hline
-2(a) & Cross Bracing - Top Chord & """ + str(input_dict.get("bracing_top_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("bracing_top_qty", "N.A.")) + r""" & """ + str(input_dict.get("bracing_top_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("bracing_top_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("bracing_top_wt_total", "N.A.")) + r""" \\
+2(a) & Cross Bracing - Top Chord & """ + _quantity_cell(input_dict, "bracing_top_vol_formula") + r""" & """ + _quantity_cell(input_dict, "bracing_top_qty") + r""" & """ + _quantity_cell(input_dict, "bracing_top_vol_total") + r""" & """ + _quantity_cell(input_dict, "bracing_top_wt_single") + r""" & """ + _quantity_cell(input_dict, "bracing_top_wt_total") + r""" \\
 \hline
-2(b) & Cross Bracing - Bottom Chord & """ + str(input_dict.get("bracing_bot_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("bracing_bot_qty", "N.A.")) + r""" & """ + str(input_dict.get("bracing_bot_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("bracing_bot_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("bracing_bot_wt_total", "N.A.")) + r""" \\
+2(b) & Cross Bracing - Bottom Chord & """ + _quantity_cell(input_dict, "bracing_bot_vol_formula") + r""" & """ + _quantity_cell(input_dict, "bracing_bot_qty") + r""" & """ + _quantity_cell(input_dict, "bracing_bot_vol_total") + r""" & """ + _quantity_cell(input_dict, "bracing_bot_wt_single") + r""" & """ + _quantity_cell(input_dict, "bracing_bot_wt_total") + r""" \\
 \hline
-2(c) & Cross Bracing - Diagonal Chord & """ + str(input_dict.get("bracing_diag_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_qty", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("bracing_diag_wt_total", "N.A.")) + r""" \\
+2(c) & Cross Bracing - Diagonal Chord & """ + _quantity_cell(input_dict, "bracing_diag_vol_formula") + r""" & """ + _quantity_cell(input_dict, "bracing_diag_qty") + r""" & """ + _quantity_cell(input_dict, "bracing_diag_vol_total") + r""" & """ + _quantity_cell(input_dict, "bracing_diag_wt_single") + r""" & """ + _quantity_cell(input_dict, "bracing_diag_wt_total") + r""" \\
 \hline
-2(d) & End Diaphragms & N.A. & N.A. & N.A. & N.A. & """ + str(input_dict.get("end_diaphragm_wt_total", "N.A.")) + r""" \\
+2(d) & End Diaphragms & N/A & N/A & N/A & N/A & """ + _quantity_cell(input_dict, "end_diaphragm_wt_total") + r""" \\
 \hline
-3 & Concrete for Deck Slab & """ + str(input_dict.get("concrete_deck_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_qty", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("concrete_deck_wt_total", "N.A.")) + r""" \\
+3 & Concrete for Deck Slab & """ + _quantity_cell(input_dict, "concrete_deck_vol_formula") + r""" & """ + _quantity_cell(input_dict, "concrete_deck_qty") + r""" & """ + _quantity_cell(input_dict, "concrete_deck_vol_total") + r""" & """ + _quantity_cell(input_dict, "concrete_deck_wt_single") + r""" & """ + _quantity_cell(input_dict, "concrete_deck_wt_total") + r""" \\
 \hline
-4 & Reinforcement Steel & """ + str(input_dict.get("rebar_deck_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_qty", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("rebar_deck_wt_total", "N.A.")) + r""" \\
+4 & Reinforcement Steel & """ + _quantity_cell(input_dict, "rebar_deck_vol_formula") + r""" & """ + _quantity_cell(input_dict, "rebar_deck_qty") + r""" & """ + _quantity_cell(input_dict, "rebar_deck_vol_total") + r""" & """ + _quantity_cell(input_dict, "rebar_deck_wt_single") + r""" & """ + _quantity_cell(input_dict, "rebar_deck_wt_total") + r""" \\
 \hline
-5 & Shear Stud Connectors & """ + str(input_dict.get("shear_studs_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("shear_studs_qty", "N.A.")) + r""" & """ + str(input_dict.get("shear_studs_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("shear_studs_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("shear_studs_wt_total", "N.A.")) + r""" \\
+5 & Shear Stud Connectors & """ + _quantity_cell(input_dict, "shear_studs_vol_formula") + r""" & """ + _quantity_cell(input_dict, "shear_studs_qty") + r""" & """ + _quantity_cell(input_dict, "shear_studs_vol_total") + r""" & """ + _quantity_cell(input_dict, "shear_studs_wt_single") + r""" & """ + _quantity_cell(input_dict, "shear_studs_wt_total") + r""" \\
 \hline
-6 & Crash Barrier & """ + str(input_dict.get("crash_barrier_vol_formula", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_qty", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_vol_total", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_wt_single", "N.A.")) + r""" & """ + str(input_dict.get("crash_barrier_wt_total", "N.A.")) + r""" \\
+6 & Crash Barrier & """ + _quantity_cell(input_dict, "crash_barrier_vol_formula") + r""" & """ + _quantity_cell(input_dict, "crash_barrier_qty") + r""" & """ + _quantity_cell(input_dict, "crash_barrier_vol_total") + r""" & """ + _quantity_cell(input_dict, "crash_barrier_wt_single") + r""" & """ + _quantity_cell(input_dict, "crash_barrier_wt_total") + r""" \\
 \hline
 \end{longtable}
 \endgroup
